@@ -94,19 +94,27 @@ const castles = (moves, value, old_position, new_position) => {
     const kingCastle = white_turn ? white_castle_king : black_castle_king
     const queenCastle = white_turn ? white_castle_queen : black_castle_queen
       
-    const validade_check_position = safeKing(value, old_position, new_position, position_pieces)
-    if(validade_check_position) {
-        for(let i=1;i<=2;i++) { 
-            if(isSafeKing) isSafeKing = safeKing(value, old_position, {new_row, new_col: old_col+i}, position_pieces)
-            if(isSafeQueen) isSafeQueen = safeKing(value, old_position, {new_row, new_col: old_col-i}, position_pieces)
+    const validate_check_position = safeKing(value, old_position, new_position, position_pieces)
+    
+    if(validate_check_position) {
+        for(let i=1;i<=2;i++) {
+            if(position_pieces[new_row][new_col+i] == ' ') {
+                if(isSafeKing) isSafeKing = safeKing(value, old_position, {new_row, new_col: old_col+i}, position_pieces)
+            }else {
+                isSafeKing = false
+            }
+            if(position_pieces[new_row][new_col-i] == ' ') {
+                if(isSafeQueen) isSafeQueen = safeKing(value, old_position, {new_row, new_col: old_col-i}, position_pieces)
+            }else {
+                isSafeQueen = false
+            }
         }
-  
         if(kingCastle && isSafeKing) {
             moves += ` ${value}${old_row}${old_col}${new_row}${new_col+2}o`
         }
         if(queenCastle && isSafeQueen) {
             moves += ` ${value}${old_row}${old_col}${new_row}${new_col-2}O`
-        } 
+        }
     }
     return moves
 }
@@ -114,13 +122,15 @@ const castles = (moves, value, old_position, new_position) => {
 const enPassant = (moves, value, old_position, new_position, type) => {
     const {old_row, old_col} = old_position
     const {new_row, new_col} = new_position
-    if(type == 3) { // consumir en-passant
-        let isSafe = safeKing(value, old_position, new_position, position_pieces)
-        if(isSafe) moves += ` ${value}${old_row}${old_col}${new_row}${new_col}e`
-    }else { // criar en-passant
-        moves += ` ${value}${old_row}${old_col}${new_row}${new_col}c`
+    let isSafe = safeKing(value, old_position, new_position, position_pieces)
+    
+    if(isSafe) {
+        if(type == 3) { // consumir en-passant
+            moves += ` ${value}${old_row}${old_col}${new_row}${new_col}e`
+        }else { // criar en-passant
+            moves += ` ${value}${old_row}${old_col}${new_row}${new_col}c`
+        }
     }
-
     return moves
 }
 
@@ -178,16 +188,13 @@ const pawnMoves = (value, position, snapshot) => {
                         }
                     }else if(row == pawnPromotion && !static_pieces.test(snapshot[row_][col_])) { // promotion move
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, promotion)
-                        // console.log('promo move: ',moves)
                     }else if((pawnPromotion !=row) && !static_pieces.test(snapshot[row_][col_])) { // all another moves
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
-                        // console.log('move: ',moves)
                     }
                 }
             }
         }
     }
-    
     if(row == pawnEnPassant) {
         if(modifiers.en_passant_.position == (col-1)) 
             moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col-1}, en_passant[0])
@@ -280,7 +287,7 @@ const kingMoves = (value, position, snapshot) => {
     let moves = ''
     moves += rookMoves(value, position, snapshot, true)
     moves += bishopMoves(value, position, snapshot, true)
-    moves += castleMoves(value, position, snapshot)
+    moves += castleMoves(value, position)
   
     return moves
 }

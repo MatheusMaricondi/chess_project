@@ -31,6 +31,7 @@ const selectSourcePiece = position => {
         }else { // selected new piece
             update_store(selected_piece_object.selected_piece, {row, col})
             const moves = getMoves(position_pieces[row][col], position_pieces, position, '')
+            console.log('POSSIBLE MOVES: ',moves)
             possibleMovesList = movesToPosition(moves)
             // console.log('engine move: ',engine_move)
             update_store(possible_moves_object.possible_moves, moves)
@@ -98,7 +99,7 @@ const makeMove = command => {
             position_pieces[source.charAt(0)][source.charAt(1)] = ' '
             position_pieces[target.charAt(0)][target.charAt(1)] = modifier_pieces
 
-            managePieces(target, isPlayerTurn, false)
+            managePieces(target, isPlayerTurn, modifier_pieces)
         }else if(['o','O'].includes(modifier_pieces)) { // castle option
             piece = command[0].charAt(0)
             source = command[0].slice(command[0].length-5, command[0].length-3) 
@@ -122,7 +123,7 @@ const makeMove = command => {
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
                 position_pieces[source.charAt(0)][target.charAt(1)] = ' ' // delete en passant piece
                 position_pieces[target.charAt(0)][target.charAt(1)] = piece
-                managePieces(target, isPlayerTurn, true)
+                managePieces(target, isPlayerTurn)
             }else if(modifier_pieces == 'c') {
                 update_store(modifiers.en_passant, {position: parseInt(target.charAt(1))})
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
@@ -132,7 +133,7 @@ const makeMove = command => {
             piece = command[0].charAt(0)
             source = command[0].slice(command[0].length-4, command[0].length-2) 
             target = command[0].slice(command[0].length-2, command[0].length) 
-            managePieces(target, isPlayerTurn, true)
+            managePieces(target, isPlayerTurn)
             position_pieces[source.charAt(0)][source.charAt(1)] = ' '
             position_pieces[target.charAt(0)][target.charAt(1)] = piece
             
@@ -147,13 +148,15 @@ const makeMove = command => {
     }
 }
 
-const managePieces = (target, player, capt) => {
-    const capture =  capt ? -1 : 1
+const managePieces = (target, player, promotionPiece = false) => {
     const { pieces_:{ white, black }, pieces } = modifiers
     let targetPiece = position_pieces[target.charAt(0)][target.charAt(1)]
     let whiteSquare
 
-    if(targetPiece !== ' ' && capt) {
+    if(targetPiece != ' ' || (promotionPiece && targetPiece != ' ')) {
+        if(promotionPiece == 'b') promotionPiece = whiteSquare ? 'wb' : 'bb'
+        if(promotionPiece == 'B') promotionPiece = whiteSquare ? 'WB' : 'BB'
+        
         if(targetPiece == 'b') {
             whiteSquare = !((parseInt(target.charAt(0))+parseInt(target.charAt(1)))%2)
             targetPiece = whiteSquare ? 'wb' : 'bb'
@@ -161,19 +164,31 @@ const managePieces = (target, player, capt) => {
             whiteSquare = !((parseInt(target.charAt(0))+parseInt(target.charAt(1)))%2)
             targetPiece = whiteSquare ? 'WB' : 'BB'
         }
-        // console.log(player, capt)
-        console.log('capture ',capture,' target ',targetPiece,' player? ',player)
+    }
+    
+    if(targetPiece != ' ' && !promotionPiece) {
         if(player) {
-            const newWhite = {...white, [targetPiece]: white[targetPiece]+capture}
-            if(!capt) newWhite.p --
-            update_store(pieces, {white: newWhite, black})
-        }else {
-            const newBlack = {...black, [targetPiece]: black[targetPiece]+capture}
-            if(!capt) newBlack.P --
+            const newBlack = {...black, [targetPiece]: black[targetPiece]--}
             update_store(pieces, {white, black: newBlack})
+        }else {
+            const newWhite = {...white, [targetPiece]: white[targetPiece]--}
+            update_store(pieces, {white: newWhite, black})
         }
-    }else if(!capt) {
-        
+    }else if(promotionPiece) {
+        if(targetPiece != ' ') {
+            let newWhite = white
+            let newBlack = black
+
+            if(player) {
+                newWhite = {...white, [promotionPiece]: white[promotionPiece]++, p: white.p--}
+                if(targetPiece != ' ') newBlack = {...black, [targetPiece]: black[targetPiece]--} 
+                update_store(pieces, {white: newWhite, black: newBlack})
+            }else {
+                newBlack = {...black, [promotionPiece]: black[promotionPiece]++, p: black.p--}
+                if(targetPiece != ' ') newWhite = {...white, [targetPiece]: white[targetPiece]--}
+                update_store(pieces, {white: newWhite, black: newBlack})
+            }
+        }
     }
     if(insufficientMaterial()) renderMateInterface(0)
 }
