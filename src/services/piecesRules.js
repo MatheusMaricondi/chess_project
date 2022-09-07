@@ -123,7 +123,7 @@ const enPassant = (moves, value, old_position, new_position, type) => {
     const {old_row, old_col} = old_position
     const {new_row, new_col} = new_position
     let isSafe = safeKing(value, old_position, new_position, position_pieces)
-    
+
     if(isSafe) {
         if(type == 3) { // consumir en-passant
             moves += ` ${value}${old_row}${old_col}${new_row}${new_col}e`
@@ -145,14 +145,14 @@ const pawnMoves = (value, position, snapshot) => {
     if(pawnDirection == 1) {
         for(let col_ = col+pawnDirection; col_ >= (col-pawnDirection); col_-=pawnDirection) {
             let first_move = (row == pawnStart && col_ == col) ? pawnDirection+pawnDirection : pawnDirection
-            for(let row_ = row+pawnDirection; row_ <= (row+first_move); row_+=pawnDirection) { 
+            for(let row_ = row+pawnDirection; row_ <= (row+first_move); row_+=pawnDirection) {
                 if((col_ != col) && ![-1,8].includes(col_)) { // capture
                     if(row == pawnPromotion && target_pieces.test(snapshot[row_][col_])) { // promotion capture
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, promotion)
                     }else if(target_pieces.test(snapshot[row_][col_])){ // normal capture 
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                     }
-                }else { // move
+                }else if(!static_pieces.test(snapshot[row+pawnDirection][col_])) { // move
                     if(row == pawnStart && !static_pieces.test(snapshot[row+pawnDirection][col_]) && !static_pieces.test(snapshot[row_][col_])) { //verifica se o lance se coloca em en-passant
                         if((row_ == row+(pawnDirection+pawnDirection)) && [snapshot[row_][col_-1],snapshot[row_][col_+1]].includes(pawn)) {
                             moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, en_passant[1])
@@ -161,10 +161,8 @@ const pawnMoves = (value, position, snapshot) => {
                         }
                     }else if(row == pawnPromotion && !static_pieces.test(snapshot[row_][col_])) { // promotion move
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, promotion)
-                        // console.log('promo move: ',moves)
                     }else if((pawnPromotion !=row) && !static_pieces.test(snapshot[row_][col_])) { // all another moves
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
-                        // console.log('move: ',moves)
                     }
                 }
             }
@@ -179,7 +177,7 @@ const pawnMoves = (value, position, snapshot) => {
                     }else if(target_pieces.test(snapshot[row_][col_])){ // normal capture 
                         moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                     }
-                }else { // move
+                }else if(!static_pieces.test(snapshot[row+pawnDirection][col_])){ // move
                     if(row == pawnStart && !static_pieces.test(snapshot[row+pawnDirection][col_]) && !static_pieces.test(snapshot[row_][col_])) { //verifica se o lance se coloca em en-passant
                         if((row_ == row+(pawnDirection+pawnDirection)) && [snapshot[row_][col_-1],snapshot[row_][col_+1]].includes(pawn)) {
                             moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, en_passant[1])
