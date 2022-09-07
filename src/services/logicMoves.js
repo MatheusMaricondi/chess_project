@@ -83,7 +83,6 @@ const makeMove = command => {
     const { white_turn, white_player } = modifiers.game_settings_
     const { deep } = modifiers.engine_settings_
     const { dinamicRules: { kingCastle, kingTarget } } = pieces()
-    const isPlayerTurn = (white_turn == white_player)
 
     let piece 
     let source
@@ -98,8 +97,6 @@ const makeMove = command => {
             
             position_pieces[source.charAt(0)][source.charAt(1)] = ' '
             position_pieces[target.charAt(0)][target.charAt(1)] = modifier_pieces
-
-            managePieces(target, isPlayerTurn, modifier_pieces)
         }else if(['o','O'].includes(modifier_pieces)) { // castle option
             piece = command[0].charAt(0)
             source = command[0].slice(command[0].length-5, command[0].length-3) 
@@ -123,7 +120,6 @@ const makeMove = command => {
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
                 position_pieces[source.charAt(0)][target.charAt(1)] = ' ' // delete en passant piece
                 position_pieces[target.charAt(0)][target.charAt(1)] = piece
-                managePieces(target, isPlayerTurn)
             }else if(modifier_pieces == 'c') {
                 update_store(modifiers.en_passant, {position: parseInt(target.charAt(1))})
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
@@ -133,7 +129,6 @@ const makeMove = command => {
             piece = command[0].charAt(0)
             source = command[0].slice(command[0].length-4, command[0].length-2) 
             target = command[0].slice(command[0].length-2, command[0].length) 
-            managePieces(target, isPlayerTurn)
             position_pieces[source.charAt(0)][source.charAt(1)] = ' '
             position_pieces[target.charAt(0)][target.charAt(1)] = piece
             
@@ -141,6 +136,7 @@ const makeMove = command => {
         }
 
         // if(engineAnalyzeOver == deep) {
+            checkInsufficientMaterial() // simulation
             if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
             update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
             renderBoard()
@@ -148,61 +144,28 @@ const makeMove = command => {
     }
 }
 
-const managePieces = (target, player, promotionPiece = false) => {
-    const { pieces_:{ white, black }, pieces } = modifiers
-    let targetPiece = position_pieces[target.charAt(0)][target.charAt(1)]
-    let whiteSquare
+const checkInsufficientMaterial = () => {
+    const pieces = new RegExp(/[pPrRqQ]/)
+    const knights = new RegExp(/[nN]/)
+    const bishop = new RegExp(/[bB]/)
 
-    if(targetPiece != ' ' || (promotionPiece && targetPiece != ' ')) {
-        if(promotionPiece == 'b') promotionPiece = whiteSquare ? 'wb' : 'bb'
-        if(promotionPiece == 'B') promotionPiece = whiteSquare ? 'WB' : 'BB'
-        
-        if(targetPiece == 'b') {
-            whiteSquare = !((parseInt(target.charAt(0))+parseInt(target.charAt(1)))%2)
-            targetPiece = whiteSquare ? 'wb' : 'bb'
-        }else if(targetPiece == 'B') {
-            whiteSquare = !((parseInt(target.charAt(0))+parseInt(target.charAt(1)))%2)
-            targetPiece = whiteSquare ? 'WB' : 'BB'
-        }
-    }
-    
-    if(targetPiece != ' ' && !promotionPiece) {
-        if(player) {
-            const newBlack = {...black, [targetPiece]: black[targetPiece]--}
-            update_store(pieces, {white, black: newBlack})
-        }else {
-            const newWhite = {...white, [targetPiece]: white[targetPiece]--}
-            update_store(pieces, {white: newWhite, black})
-        }
-    }else if(promotionPiece) {
-        if(targetPiece != ' ') {
-            let newWhite = white
-            let newBlack = black
+    const drawPieces = {n: 0, wb: 0, bb: 0, N: 0, wB: 0, bB: 0}
 
-            if(player) {
-                newWhite = {...white, [promotionPiece]: white[promotionPiece]++, p: white.p--}
-                if(targetPiece != ' ') newBlack = {...black, [targetPiece]: black[targetPiece]--} 
-                update_store(pieces, {white: newWhite, black: newBlack})
-            }else {
-                newBlack = {...black, [promotionPiece]: black[promotionPiece]++, p: black.p--}
-                if(targetPiece != ' ') newWhite = {...white, [targetPiece]: white[targetPiece]--}
-                update_store(pieces, {white: newWhite, black: newBlack})
+    for(let row=0;row<=7;row++)
+        for(let col=0;col<=7;col++) {
+            if(pieces.test(position_pieces[row][col])) return false
+            if(knights.test(position_pieces[row][col])) {
+                drawPieces[position_pieces[row][col]] ++
+            }
+            if(bishop.test(position_pieces[row][col])) {
+                !((row+col)%2) ? drawPieces[`w${position_pieces[row][col]}`]++ : drawPieces[`b${position_pieces[row][col]}`]++
             }
         }
-    }
-    if(insufficientMaterial()) renderMateInterface(0)
+    if((!!(drawPieces.wb && drawPieces.bb) || !!((drawPieces.wb | drawPieces.bb) && drawPieces.n)) || !!(drawPieces.n > 2)) return false
+    if((!!(drawPieces.wB && drawPieces.bB) || !!((drawPieces.wB | drawPieces.bB) && drawPieces.N)) || !!(drawPieces.N > 2)) return false
+   
+    return renderMateInterface(0)
 }
-
-const insufficientMaterial = () => {
-    const { pieces_: {white, black} } = modifiers
-
-    if ((!white.p && !black.P) && (!white.r && !black.R) && (!white.q && !black.Q) && (white.n < 3 && black.N < 3)) {
-        if(((!white.wb && !white.bb) || ((!white.wb | !white.bb) && !white.n)) && (!black.WB && !black.BB && !black.N)) return true
-        if(((!black.WB && !black.BB) || ((!black.WB | !black.BB) && !black.N)) && (!white.wb && !white.bb && !white.n)) return true
-    }
-    return false
-}
-
 
 const make_engine_moves = () => {
     const { white_player, white_turn } = modifiers.game_settings_
