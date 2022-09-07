@@ -1,7 +1,8 @@
 <script context="module">
-  import { position_pieces, promotion_modal_object, update_store, modifiers } from '../store/index'
+  import { position_pieces, promotion_modal_object, update_store } from '../store/index'
   import { pieces as p } from '../helpers/utils'
   import { selectSourcePiece, selectTargetPiece, selectPromotionPiece } from '../services/logicMoves'
+  import { restartGame } from '../services/interface'
 
   let chessboard = Array(8).fill().map(() => Array(8).fill())
   let select_square = '#89c88a'
@@ -93,7 +94,7 @@
   }
 </script>
 <main>
-  
+    <div><button on:click={restartGame}>New Game</button></div>
     <div>
       {#each chessboard as row, row_i}
       {#each row as col, col_i}

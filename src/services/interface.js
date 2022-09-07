@@ -1,4 +1,4 @@
-import {  modifiers, update_store, promotion_modal_object } from '../store/index'
+import {  modifiers, update_store, promotion_modal_object, position_pieces } from '../store/index'
 import { renderBoard, renderPromotion, renderMateBox } from '../components/board.svelte'
 
 const renderMateInterface = status => {
@@ -25,8 +25,29 @@ const renderPromotionInterface = move => {
         }
 }
 
-const renderBoardInterface = x => {
+const renderBoardInterface = () => {
     renderBoard()
 }
 
-export { renderMateInterface, renderPromotionInterface, renderBoardInterface }
+const restartGame = () => {
+    const pieces = {
+        0: ['R','N','B','Q','K','B','N','R'],
+        1: 'P',
+        6: 'p',
+        7: ['r','n','b','q','k','b','n','r'],
+    }
+    for(let row=0;row<=7;row++)
+        for(let col=0;col<=7;col++) {
+            // console.log(col)
+            if(row == 0 || row == 7) {
+                position_pieces[row][col] = pieces[row][col]
+            }else if(row > 1 && row < 6) {
+                position_pieces[row][col] = ' '
+            }else {
+                position_pieces[row][col] = pieces[row]
+            }
+        }
+    renderBoard()
+}
+
+export { renderMateInterface, renderPromotionInterface, renderBoardInterface, restartGame }

@@ -1,24 +1,14 @@
 import { writable, derived } from 'svelte/store';
 
-// let position_pieces = writable([
-//   ['R','N','B','Q','K','B','N','R'],
-//   ['P','P','P','P','P','P','P','P'],
-//   [' ',' ',' ',' ',' ',' ',' ',' '],
-//   [' ',' ',' ',' ',' ',' ',' ',' '],
-//   [' ',' ',' ',' ',' ',' ',' ',' '],
-//   [' ',' ',' ',' ',' ',' ',' ',' '],
-//   ['p','p','p','p','p','p','p','p'],
-//   ['r','n','b','q','k','b','n','r']
-// ])
 let position_pieces = writable([
-  [' ',' ',' ','B',' ',' ',' ',' '],
-  [' ',' ',' ','B',' ',' ',' ',' '],
-  [' ',' ',' ','K',' ',' ',' ',' '],
-  [' ',' ',' ',' ',' ','r',' ',' '],
-  [' ',' ',' ','k',' ',' ',' ',' '],
+  ['R','N','B','Q','K','B','N','R'],
+  ['P','P','P','P','P','P','P','P'],
   [' ',' ',' ',' ',' ',' ',' ',' '],
   [' ',' ',' ',' ',' ',' ',' ',' '],
-  [' ',' ',' ',' ',' ',' ',' ',' ']
+  [' ',' ',' ',' ',' ',' ',' ',' '],
+  [' ',' ',' ',' ',' ',' ',' ',' '],
+  ['p','p','p','p','p','p','p','p'],
+  ['r','n','b','q','k','b','n','r']
 ])
 
 let promotion_modal_object = {
@@ -41,7 +31,6 @@ let modifiers = {
   xeque_mate: writable(null), // 0: draw, 1: player1 win, 2: enigine win
   xeque_mate_: writable(null)
 }
-
 
 let selected_piece_object = {
   selected_piece: writable({row: null, col: null}),
