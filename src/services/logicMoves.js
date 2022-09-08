@@ -43,7 +43,7 @@ const selectTargetPiece = target => {
     const {row: t_row, col: t_col} = target
     const { row: s_row, col: s_col } = selected_piece_object.selected_piece_
 
-    if(possible_moves_object.possible_moves_ != '' || selected_piece_object.selected_piece_ == {}) {
+    if(possible_moves_object.possible_moves_ != '' || selected_piece_object.selected_piece_.row) {
         const list_moves = possible_moves_object.possible_moves_.split(' ')
         const get_move = list_moves.filter(it => it.includes(`${s_row}${s_col}${t_row}${t_col}`))
         if(get_move.length == 1) { // normal option
@@ -52,6 +52,7 @@ const selectTargetPiece = target => {
             renderPromotionInterface(get_move)
         }else {
             console.log('invalid move')
+            renderBoard()
         }
     
     }else {

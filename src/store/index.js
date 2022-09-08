@@ -28,7 +28,7 @@ let modifiers = {
   game_settings_: writable({}),
   engine_settings: writable({deep: 1, nodes: 2, analise: false}),
   engine_settings_: writable({}),
-  xeque_mate: writable(null), // 0: draw, 1: player1 win, 2: enigine win
+  xeque_mate: writable(null), // 0: draw, 1: player win, 2: enigine win
   xeque_mate_: writable(null)
 }
 

@@ -81,7 +81,6 @@
 
         if(selected_piece) {
           if((row_i == selected_piece.row) && (col_i == selected_piece.col)) {
-            console.log('selected piece')
             chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${select_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
           }
 
