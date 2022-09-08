@@ -1,5 +1,5 @@
 import {  modifiers, update_store, promotion_modal_object, position_pieces } from '../store/index'
-import { renderBoard, renderPromotion, renderMateBox } from '../components/board.svelte'
+import { renderBoard, renderPromotion, renderMateBox, closeRenderMateBox } from '../components/board.svelte'
 
 const renderMateInterface = status => {
     const { xeque_mate, game_settings, game_settings_: {white_turn, white_player} } = modifiers
@@ -55,6 +55,7 @@ const restartGame = () => {
             }
         }
     renderBoard()
+    closeRenderMateBox()
 }
 
 export { renderMateInterface, renderPromotionInterface, renderBoardInterface, restartGame }

@@ -22,6 +22,12 @@
     mateBox.innerHTML = text
   }
 
+  function closeRenderMateBox() {
+    let mateBox = document.getElementById('mate')
+    mateBox.style.cssText = ''
+    mateBox.innerHTML = ''
+  }
+
   function renderPromotion(piece_options) {
     let promotion = document.getElementById('promotion')
 
@@ -108,7 +114,8 @@
   export {
     renderBoard,
     renderPromotion,
-    renderMateBox
+    renderMateBox,
+    closeRenderMateBox
   }
 </script>
 <main>
