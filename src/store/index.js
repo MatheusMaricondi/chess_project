@@ -26,7 +26,7 @@ let modifiers = {
   en_passant_: writable({}),
   game_settings: writable({white_turn: true, white_player: true}), // white true
   game_settings_: writable({}),
-  engine_settings: writable({deep: 1, nodes: 2}),
+  engine_settings: writable({deep: 1, nodes: 2, analise: false}),
   engine_settings_: writable({}),
   xeque_mate: writable(null), // 0: draw, 1: player1 win, 2: enigine win
   xeque_mate_: writable(null)
