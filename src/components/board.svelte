@@ -15,14 +15,14 @@
     }
   })
 
-  function renderMateBox(text) {
+  function renderStatusGameBox(text) {
     let mateBox = document.getElementById('mate')
 
     mateBox.style.cssText = 'width: 450px; height: 50px; font-size: 25px; padding-left: 200px; background-color: #181818; align-items: center; color: rgb(94 94 94);'
     mateBox.innerHTML = text
   }
 
-  function closeRenderMateBox() {
+  function closeStatusGameBox() {
     let mateBox = document.getElementById('mate')
     mateBox.style.cssText = ''
     mateBox.innerHTML = ''
@@ -114,8 +114,8 @@
   export {
     renderBoard,
     renderPromotion,
-    renderMateBox,
-    closeRenderMateBox
+    renderStatusGameBox,
+    closeStatusGameBox
   }
 </script>
 <main>
