@@ -63,11 +63,7 @@
     const previousMoveObject = {}
     const { same_pieces } = p()
 
-    if(previousMove) {
-      previousMoveObject.src = previousMove[0].substr(1,2)
-      previousMoveObject.trg = previousMove[0].substr(3,4)
-    }
-
+    console.log('previousMove',previousMove)
     let colors = ['#CECECE', '#797979']
     chessboard.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
@@ -85,6 +81,11 @@
         
         chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${colors[((row_i+1)+(col_i+1))%2]}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
 
+        if(previousMove) {
+          if(previousMove.ini && ((previousMove.ini == `${row_i}${col_i}`) || (previousMove.fin == `${row_i}${col_i}`))) {
+            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${played_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+          }
+        }
         if(selected_piece) {
           if((row_i == selected_piece.row) && (col_i == selected_piece.col)) {
             chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${select_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
@@ -100,13 +101,8 @@
               }
             })
           }
-          
         }
-        if(previousMove) {
-          if(previousMove && ((previousMoveObject.src == `${row_i}${col_i}`) || (previousMoveObject.trg == `${row_i}${col_i}`))) {
-            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${played_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
-          }
-        }
+       
       })
     })
   };

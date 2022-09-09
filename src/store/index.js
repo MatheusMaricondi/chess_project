@@ -34,7 +34,9 @@ let modifiers = {
 
 let selected_piece_object = {
   selected_piece: writable({row: null, col: null}),
-  selected_piece_: writable({})
+  selected_piece_: writable({}),
+  last_piece_moved: writable({ini: null, fin: null}),
+  last_piece_moved_: writable({})
 }
 
 let possible_moves_object = {
@@ -44,6 +46,8 @@ let possible_moves_object = {
 
 possible_moves_object.possible_moves.subscribe(value => possible_moves_object.possible_moves_ = value)
 selected_piece_object.selected_piece.subscribe(value => selected_piece_object.selected_piece_ = value)
+selected_piece_object.last_piece_moved.subscribe(value => selected_piece_object.last_piece_moved_ = value)
+
 promotion_modal_object.promotion_modal.subscribe(value => promotion_modal_object.promotion_modal_ = value)
 modifiers.white_castle.subscribe(value => modifiers.white_castle_ = value)
 modifiers.black_castle.subscribe(value => modifiers.black_castle_ = value)

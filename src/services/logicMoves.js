@@ -35,7 +35,7 @@ const selectSourcePiece = position => {
             possibleMovesList = movesToPosition(moves)
             update_store(possible_moves_object.possible_moves, moves)
         }
-        renderBoard(selected_piece_object.selected_piece_, possibleMovesList)
+        renderBoard(selected_piece_object.selected_piece_, possibleMovesList, selected_piece_object.last_piece_moved_)
     }
 }
 
@@ -52,7 +52,7 @@ const selectTargetPiece = target => {
             renderPromotionInterface(get_move)
         }else {
             console.log('invalid move')
-            renderBoard()
+            renderBoard(null, null, selected_piece_object.last_piece_moved_)
         }
     
     }else {
@@ -78,8 +78,8 @@ const makeMove = command => {
     const { xeque_mate_ } = modifiers
     const { rook, knight, bishop, queen } = table_pieces().pieces
     const { white_turn, white_player } = modifiers.game_settings_
-    const { deep, nodes } = modifiers.engine_settings_
     const { dinamicRules: { kingCastle, kingTarget } } = pieces()
+    const { deep, nodes } = modifiers.engine_settings_
     const playerTurn = (white_player == white_turn)
 
     let piece 
@@ -131,15 +131,17 @@ const makeMove = command => {
             position_pieces[target.charAt(0)][target.charAt(1)] = piece
             
             castle_modifiers(piece, source, white_turn) // after move add modifiers
+
+            update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
+            checkInsufficientMaterial(true) // simulation
+            if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
+            update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,4)})
+            renderBoard(null, null, selected_piece_object.last_piece_moved_)
+            // console.log(!nodes)
+            // if(playerTurn || !nodes) {
+            // }
         }
 
-        update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
-        checkInsufficientMaterial(true) // simulation
-        if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
-        renderBoard(null, null, command)
-        // console.log(!nodes)
-        // if(playerTurn || !nodes) {
-        // }
     }
 }
 
