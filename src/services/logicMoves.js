@@ -63,15 +63,16 @@ const selectTargetPiece = target => {
     update_store(possible_moves_object.possible_moves, [])
 }
 
-const beforeMakeMove = move => {
-    makeMove(move)
-    make_engine_moves()
-    check_white_game()
-}
 
 const selectPromotionPiece = (piece) => {
     update_store(promotion_modal_object.promotion_modal, false)
     beforeMakeMove([piece])
+}
+
+const beforeMakeMove = move => {
+    makeMove(move)
+    make_engine_moves()
+    check_white_game()
 }
 
 const makeMove = command => {
@@ -131,18 +132,25 @@ const makeMove = command => {
             position_pieces[target.charAt(0)][target.charAt(1)] = piece
             
             castle_modifiers(piece, source, white_turn) // after move add modifiers
-
-            update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
-            checkInsufficientMaterial(true) // simulation
-            if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
-            update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,4)})
-            renderBoard(null, null, selected_piece_object.last_piece_moved_)
-            // console.log(!nodes)
-            // if(playerTurn || !nodes) {
-            // }
         }
+        
+        afterMakeMove(command, modifier_pieces)
 
     }
+}
+
+const afterMakeMove = (command, modifier_pieces) => {
+    const { white_turn, white_player } = modifiers.game_settings_
+
+    update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
+    checkInsufficientMaterial(true) // simulation
+    if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
+    console.log(command[0])
+    update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,2)})
+    renderBoard(null, null, selected_piece_object.last_piece_moved_)
+    // console.log(!nodes)
+    // if(playerTurn || !nodes) {
+    // }
 }
 
 const checkInsufficientMaterial = () => {

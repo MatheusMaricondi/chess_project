@@ -60,7 +60,6 @@
     let width_size = 65
     let pieces_pad = (20 / 100) * width_size
     let height_size = width_size + pieces_pad
-    const previousMoveObject = {}
     const { same_pieces } = p()
 
     console.log('previousMove',previousMove)
