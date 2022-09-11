@@ -3,11 +3,12 @@
   import { pieces as p } from '../helpers/utils'
   import { selectSourcePiece, selectTargetPiece, selectPromotionPiece } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
+  import { standard } from '../services/getPieces';
 
   let chessboard = Array(8).fill().map(() => Array(8).fill())
   let select_square = '#89c88a'
   let played_square = '#F8F8B8'
-  const pieces = {P: "&#9823;",R: '&#9820;',N: '&#9822;',B: '&#9821;',Q: '&#9819;',K: '&#9818;',p: '&#9817;',r: '&#9814;',n: '&#9816;',b: '&#9815;',q: '&#9813;',k: '&#9812;'} 
+  const pieces = {P: standard.b_pawn,R: standard.b_rook,N: standard.b_knight,B: standard.b_bishop,Q: standard.b_queen,K: standard.b_king,p: standard.w_pawn,r: standard.w_rook,n: standard.w_knight,b: standard.w_bishop,q: standard.w_queen,k: standard.w_king} 
 
   window.addEventListener("keydown", function (event) {
     if(event.key == 'Escape' || event.key == 'Esc') {
@@ -58,11 +59,11 @@
 
   function renderBoard(selected_piece = null, possible_moves = null, previousMove = null) {
     let width_size = 65
-    let pieces_pad = (20 / 100) * width_size
-    let height_size = width_size + pieces_pad
+    let pieces_pad = 5
+    let height_size = width_size 
+
     const { same_pieces } = p()
 
-    console.log('previousMove',previousMove)
     let colors = ['#CECECE', '#797979']
     chessboard.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
@@ -78,25 +79,25 @@
           chessboard[row_i][col_i].onclick = () => selectTargetPiece({row: row_i, col: col_i});
         }
         
-        chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${colors[((row_i+1)+(col_i+1))%2]}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+        chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${colors[((row_i+1)+(col_i+1))%2]}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
 
         if(previousMove) {
           if(previousMove.ini && ((previousMove.ini == `${row_i}${col_i}`) || (previousMove.fin == `${row_i}${col_i}`))) {
-            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${played_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${played_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
           }
         }
         if(selected_piece) {
           if((row_i == selected_piece.row) && (col_i == selected_piece.col)) {
-            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${select_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+            chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${select_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
           }
 
           if(possible_moves) {
             possible_moves.forEach(it => {
               if(it.row == row_i && it.col == col_i) {
                 if(position_pieces[it.row][it.col] != ' ') 
-                  chessboard[row_i][col_i].style.cssText = `user-select: none; background: ${colors[((row_i+1)+(col_i+1))%2]}; background: radial-gradient(circle, ${colors[((row_i+1)+(col_i+1))%2]} 80%, ${select_square} 80%); height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+                  chessboard[row_i][col_i].style.cssText = `user-select: none; background: ${colors[((row_i+1)+(col_i+1))%2]}; background: radial-gradient(circle, ${colors[((row_i+1)+(col_i+1))%2]} 80%, ${select_square} 85%); height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
                 else
-                  chessboard[row_i][col_i].style.cssText = `user-select: none; background: ${colors[((row_i+1)+(col_i+1))%2]}; background: radial-gradient(circle, ${select_square} 20%, ${colors[((row_i+1)+(col_i+1))%2]} 20%); height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding-left: ${pieces_pad}px; border: solid 1.5px #222222;`
+                  chessboard[row_i][col_i].style.cssText = `user-select: none; background: ${colors[((row_i+1)+(col_i+1))%2]}; background: radial-gradient(circle, ${select_square} 15%, ${colors[((row_i+1)+(col_i+1))%2]} 20%); height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
               }
             })
           }
@@ -115,6 +116,7 @@
 </script>
 <main>
     <div><button on:click={restartGame}>New Game</button></div>
+
     <div>
       {#each chessboard as row, row_i}
       {#each row as col, col_i}

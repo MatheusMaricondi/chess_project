@@ -46,7 +46,6 @@ const restartGame = () => {
     
     for(let row=0;row<=7;row++)
         for(let col=0;col<=7;col++) {
-            // console.log(col)
             if(row == 0 || row == 7) {
                 position_pieces[row][col] = pieces[row][col]
             }else if(row > 1 && row < 6) {

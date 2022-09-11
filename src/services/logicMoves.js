@@ -145,7 +145,6 @@ const afterMakeMove = (command, modifier_pieces) => {
     update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
     checkInsufficientMaterial(true) // simulation
     if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
-    console.log(command[0])
     update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,2)})
     renderBoard(null, null, selected_piece_object.last_piece_moved_)
     // console.log(!nodes)

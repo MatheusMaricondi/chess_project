@@ -18,7 +18,7 @@ const findPossibleMoves = isEngineTurn => {
     if(moves != '') {
         better_move = filterBetterMove(moves)
     }else {
-        better_move = kingInXeque(position_pieces) ? (isEngineTurn ? 1 : 2) : 0 // 1: player won; 2: engine won; 3: draw
+        better_move = kingInXeque(position_pieces) ? (isEngineTurn ? 1 : 2) : 0 // 1: player won; 2: engine won; 0: draw
         renderMateInterface(better_move)
         return false
     }
