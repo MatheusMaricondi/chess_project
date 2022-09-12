@@ -8,13 +8,17 @@ const kingInXeque = (snapshot) => {
     return kingInXeque
 }
 
-const safeKing = (piece, old_position, new_position, snapshot) => {
+const safeKing = (piece, old_position, new_position, snapshot, enPassant = false) => {
     const { old_row, old_col } = old_position
     const { new_row, new_col } = new_position
     let old_square = snapshot[new_row][new_col]
-    let kingSafe
-
+    let kingSafe, old_enPassant_square
+    
     //make move
+    if(enPassant) {
+        old_enPassant_square = snapshot[old_row][new_col]
+        snapshot[old_row][new_col] = ' '
+    } 
     snapshot[old_row][old_col] = ' '
     snapshot[new_row][new_col] = piece
     
@@ -22,6 +26,7 @@ const safeKing = (piece, old_position, new_position, snapshot) => {
     // undo move
     snapshot[old_row][old_col] = piece
     snapshot[new_row][new_col] = old_square
+    if(enPassant) snapshot[old_row][new_col] = old_enPassant_square
 
     return kingSafe
 }
@@ -29,7 +34,6 @@ const safeKing = (piece, old_position, new_position, snapshot) => {
 const checkPiecesAround = snapshot => {
     const { king } = table_pieces().pieces
     let returnSafes
-
     snapshot.forEach((row, row_i) => {
         row.forEach((col, col_i) => {
             if(position_pieces[row_i][col_i] == king) {

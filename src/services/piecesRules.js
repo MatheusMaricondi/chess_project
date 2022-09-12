@@ -61,6 +61,7 @@ const makeMove = (moves, value, old_position, new_position, game_modifiers=null)
 const defaultMove = (moves, value, old_position, new_position) => {
     const {old_row,old_col} = old_position
     const {new_row,new_col} = new_position
+
     let isSafe = safeKing(value, old_position, new_position, position_pieces)
 
     if(isSafe) moves += ` ${value}${old_row}${old_col}${new_row}${new_col}`
@@ -122,15 +123,16 @@ const castles = (moves, value, old_position, new_position) => {
 const enPassant = (moves, value, old_position, new_position, type) => {
     const {old_row, old_col} = old_position
     const {new_row, new_col} = new_position
-    let isSafe = safeKing(value, old_position, new_position, position_pieces)
+    let isSafe 
 
-    if(isSafe) {
         if(type == 3) { // consumir en-passant
-            moves += ` ${value}${old_row}${old_col}${new_row}${new_col}e`
+            isSafe = safeKing(value, old_position, new_position, position_pieces, true)
+            if(isSafe) moves += ` ${value}${old_row}${old_col}${new_row}${new_col}e`
         }else { // criar en-passant
-            moves += ` ${value}${old_row}${old_col}${new_row}${new_col}c`
+            isSafe = safeKing(value, old_position, new_position, position_pieces)
+            if(isSafe) moves += ` ${value}${old_row}${old_col}${new_row}${new_col}c`
         }
-    }
+    
     return moves
 }
 
