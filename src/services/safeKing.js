@@ -9,16 +9,14 @@ const kingInXeque = (snapshot) => {
 }
 
 const safeKing = (piece, old_position, new_position, snapshot, enPassant = false) => {
+    const { pawn } = table_pieces().target
     const { old_row, old_col } = old_position
     const { new_row, new_col } = new_position
     let old_square = snapshot[new_row][new_col]
-    let kingSafe, old_enPassant_square
+    let kingSafe
     
     //make move
-    if(enPassant) {
-        old_enPassant_square = snapshot[old_row][new_col]
-        snapshot[old_row][new_col] = ' '
-    } 
+    if(enPassant) snapshot[old_row][new_col] = ' '
     snapshot[old_row][old_col] = ' '
     snapshot[new_row][new_col] = piece
     
@@ -26,7 +24,7 @@ const safeKing = (piece, old_position, new_position, snapshot, enPassant = false
     // undo move
     snapshot[old_row][old_col] = piece
     snapshot[new_row][new_col] = old_square
-    if(enPassant) snapshot[old_row][new_col] = old_enPassant_square
+    if(enPassant) snapshot[old_row][new_col] = pawn
 
     return kingSafe
 }
