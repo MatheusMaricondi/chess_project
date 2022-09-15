@@ -24,20 +24,23 @@ const selectSourcePiece = position => {
     const { xeque_mate_ } = modifiers
     let possibleMovesList 
 
-    console.log(modifiers.game_historic_)
-
     if(white_player == white_turn && (xeque_mate_ == null)) {
         if(s_row == row && s_col == col) { // selected the same piece
             update_store(selected_piece_object.selected_piece, {})
             update_store(possible_moves_object.possible_moves, [])
+            renderBoard(selected_piece_object.selected_piece_, [], selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
         }else { // selected new piece
-            update_store(selected_piece_object.selected_piece, {row, col})
             const moves = getMoves(position_pieces[row][col], position_pieces, position, '')
-            console.log('POSSIBLE MOVES: ',moves)
             possibleMovesList = movesToPosition(moves)
-            update_store(possible_moves_object.possible_moves, moves)
+            if(possibleMovesList.length > 0) {
+                update_store(selected_piece_object.selected_piece, {row, col})
+                update_store(possible_moves_object.possible_moves, moves)
+                renderBoard(selected_piece_object.selected_piece_, possibleMovesList, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
+            }
+            
         }
-        renderBoard(selected_piece_object.selected_piece_, possibleMovesList, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
+
+
     }
 }
 
@@ -54,7 +57,7 @@ const selectTargetPiece = target => {
             renderPromotionInterface(get_move)
         }else {
             console.log('invalid move')
-            renderBoard(null, null, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
+            renderBoard(null, [], selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
         }
     
     }else {
@@ -76,7 +79,7 @@ const beforeMakeMove = move => {
     setTimeout(() => {
         make_engine_moves()
         check_white_game()
-    }, 2000);
+    }, 1000);
 }
 
 const makeMove = command => {
@@ -164,7 +167,7 @@ const afterMakeMove = (command, modifier_pieces) => {
     if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
     update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,2)})
     update_store(modifiers.game_historic, [...modifiers.game_historic_, command[0]])
-    renderBoard(null, null, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
+    renderBoard(null, [], selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
     // console.log(!nodes)
     // if(playerTurn || !nodes) {
     // }

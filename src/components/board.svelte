@@ -59,14 +59,13 @@
     update_store(promotion_modal_object.promotion_modal, false)
   }
 
-  function renderBoard(selected_piece = null, possible_moves = null, previousMove = null, kingXeque = null) {
+  function renderBoard(selected_piece = null, possible_moves = [], previousMove = null, kingXeque = null) {
     let width_size = 65
     let pieces_pad = 5
     let height_size = width_size 
 
     const { same_pieces } = p()
 
-    console.log('RENDER: ',kingXeque)
     let colors = ['#CECECE', '#797979']
     chessboard.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
@@ -89,12 +88,12 @@
             chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${played_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
           }
         }
-        if(selected_piece) {
+        if(selected_piece && possible_moves.length > 0) {
           if((row_i == selected_piece.row) && (col_i == selected_piece.col)) {
             chessboard[row_i][col_i].style.cssText = `user-select: none; background-color: ${select_square}; height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
           }
 
-          if(possible_moves) {
+          if(possible_moves.length > 0) {
             possible_moves.forEach(it => {
               if(it.row == row_i && it.col == col_i) {
                 if(position_pieces[it.row][it.col] != ' ') 

@@ -42,6 +42,7 @@ const restartGame = () => {
     update_store(black_castle, { castle_k: true, castle_q: true })
     update_store(en_passant, { position: null })
     update_store(selected_piece_object.last_piece_moved, {ini: null, fin: null})
+    update_store(selected_piece_object.king_xeque, null)
     update_store(xeque_mate, null)
     
     for(let row=0;row<=7;row++)
