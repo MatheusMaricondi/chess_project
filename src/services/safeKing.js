@@ -130,7 +130,6 @@ const withoutPawn = (position, snapshot) => {
         if(((row+pawnDirection) >= kingSafePawn) && col-1 >= 0)
             if(snapshot[row+pawnDirection][col-1] == pawn) return false
     }
-
     return true
 }
 

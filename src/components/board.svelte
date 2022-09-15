@@ -4,10 +4,12 @@
   import { selectSourcePiece, selectTargetPiece, selectPromotionPiece } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
   import { standard } from '../services/getPieces';
+  import { kingInXeque } from '../services/safeKing';
 
   let chessboard = Array(8).fill().map(() => Array(8).fill())
   let select_square = '#89c88a'
   let played_square = '#F8F8B8'
+  let xeque_square = '#FC8979'
   const pieces = {P: standard.b_pawn,R: standard.b_rook,N: standard.b_knight,B: standard.b_bishop,Q: standard.b_queen,K: standard.b_king,p: standard.w_pawn,r: standard.w_rook,n: standard.w_knight,b: standard.w_bishop,q: standard.w_queen,k: standard.w_king} 
 
   window.addEventListener("keydown", function (event) {
@@ -57,13 +59,14 @@
     update_store(promotion_modal_object.promotion_modal, false)
   }
 
-  function renderBoard(selected_piece = null, possible_moves = null, previousMove = null) {
+  function renderBoard(selected_piece = null, possible_moves = null, previousMove = null, kingXeque = null) {
     let width_size = 65
     let pieces_pad = 5
     let height_size = width_size 
 
     const { same_pieces } = p()
 
+    console.log('RENDER: ',kingXeque)
     let colors = ['#CECECE', '#797979']
     chessboard.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
@@ -102,6 +105,11 @@
             })
           }
         }
+        if(kingXeque) {
+          if(position_pieces[row_i][col_i] == kingXeque) {
+            chessboard[row_i][col_i].style.cssText = `user-select: none; background: ${colors[((row_i+1)+(col_i+1))%2]}; background: radial-gradient(circle, ${xeque_square} 50%, ${colors[((row_i+1)+(col_i+1))%2]} 80%); height: ${height_size}px; width: ${width_size}px; font-size: 85px; align-content: space-around; padding: ${pieces_pad}px; border: solid 1.5px #222222;`
+          }
+        }
        
       })
     })
@@ -115,17 +123,19 @@
   }
 </script>
 <main>
-    <div><button on:click={restartGame}>New Game</button></div>
+  <div><button on:click={restartGame}>New Game</button></div>
+  <div>
+    {#each chessboard as row, row_i}
+    {#each row as col, col_i}
+    <div bind:this={chessboard[row_i][col_i]}></div>
+    {/each}
+    {/each}
+  </div>
+  <div id='promotion'></div>
+  <div id='mate'></div>
 
-    <div>
-      {#each chessboard as row, row_i}
-      {#each row as col, col_i}
-      <div bind:this={chessboard[row_i][col_i]}></div>
-      {/each}
-      {/each}
-    </div>
-    <div id='promotion'></div>
-    <div id='mate'></div>
+  <button>Undo</button>
+  <button>Next</button>
 </main>
 
 <style>

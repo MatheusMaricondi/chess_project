@@ -3,6 +3,7 @@ import { renderBoard } from '../components/board.svelte'
 import { findPossibleMoves, getMoves } from '../services/piecesRules'
 import { table_pieces } from '../helpers/constants'
 import { pieces } from '../helpers/utils'
+import { kingInXeque } from './safeKing'
 import { renderPromotionInterface, renderMateInterface } from './interface'
 
 const movesToPosition = moves => {
@@ -16,13 +17,14 @@ const movesToPosition = moves => {
     return newPossibleMovesList
 }
 
-
 const selectSourcePiece = position => {
     const {row, col} = position
     const { row: s_row, col: s_col } = selected_piece_object.selected_piece_
     const { white_turn, white_player } = modifiers.game_settings_
     const { xeque_mate_ } = modifiers
     let possibleMovesList 
+
+    console.log(modifiers.game_historic_)
 
     if(white_player == white_turn && (xeque_mate_ == null)) {
         if(s_row == row && s_col == col) { // selected the same piece
@@ -35,7 +37,7 @@ const selectSourcePiece = position => {
             possibleMovesList = movesToPosition(moves)
             update_store(possible_moves_object.possible_moves, moves)
         }
-        renderBoard(selected_piece_object.selected_piece_, possibleMovesList, selected_piece_object.last_piece_moved_)
+        renderBoard(selected_piece_object.selected_piece_, possibleMovesList, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
     }
 }
 
@@ -52,7 +54,7 @@ const selectTargetPiece = target => {
             renderPromotionInterface(get_move)
         }else {
             console.log('invalid move')
-            renderBoard(null, null, selected_piece_object.last_piece_moved_)
+            renderBoard(null, null, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
         }
     
     }else {
@@ -71,38 +73,50 @@ const selectPromotionPiece = (piece) => {
 
 const beforeMakeMove = move => {
     makeMove(move)
-    make_engine_moves()
-    check_white_game()
+    setTimeout(() => {
+        make_engine_moves()
+        check_white_game()
+    }, 2000);
 }
 
 const makeMove = command => {
     const { xeque_mate_ } = modifiers
-    const { rook, knight, bishop, queen } = table_pieces().pieces
-    const { white_turn, white_player } = modifiers.game_settings_
+    const { rook, king, pawn } = table_pieces().pieces
+    const { white_turn } = modifiers.game_settings_
     const { dinamicRules: { kingCastle, kingTarget } } = pieces()
-    const { deep, nodes } = modifiers.engine_settings_
-    const playerTurn = (white_player == white_turn)
-
+    
     let piece 
     let source
     let target
-    let modifier_pieces = command[0].charAt(5)
+    let modifier_pieces = command[0].charAt(0)
+    
+    /*
+        commands structure
+
+        p1231Q, b4333R capture
+        p1243, b2344 move
+        ^1234qB promotion capture
+        ^1244q promotion move
+        ,3344 cria en-passant
+        ;2344 consome en-passant
+        -3244 castle k
+        _2344 castle q
+    */
 
     if(xeque_mate_ == null) {
-        if([rook,knight,bishop,queen].includes(modifier_pieces)) { // promotion option
-            piece = command[0].charAt(0)
+        if(modifier_pieces == '^') { // promotion option
+            const promotionPiece = command[0].charAt(5)
             source = command[0].slice(command[0].length-5, command[0].length-3) 
             target = command[0].slice(command[0].length-3, command[0].length-1) 
             
-            position_pieces[source.charAt(0)][source.charAt(1)] = ' '
-            position_pieces[target.charAt(0)][target.charAt(1)] = modifier_pieces
-        }else if(['o','O'].includes(modifier_pieces)) { // castle option
-            piece = command[0].charAt(0)
-            source = command[0].slice(command[0].length-5, command[0].length-3) 
-            target = command[0].slice(command[0].length-3, command[0].length-1)
+            position_pieces[command[0].charAt(1)][command[0].charAt(2)] = ' '
+            position_pieces[command[0].charAt(3)][command[0].charAt(4)] = promotionPiece
+        }else if(['-','_'].includes(modifier_pieces)) { // castle option
+            source = command[0].slice(command[0].length-4, command[0].length-2) 
+            target = command[0].slice(command[0].length-2, command[0].length)
 
             position_pieces[source.charAt(0)][source.charAt(1)] = ' '
-            position_pieces[target.charAt(0)][target.charAt(1)] = piece
+            position_pieces[target.charAt(0)][target.charAt(1)] = king
             if(target == kingTarget) {
                 position_pieces[kingCastle][7] = ' '
                 position_pieces[target.charAt(0)][parseInt(target.charAt(1))-1] = rook
@@ -110,33 +124,33 @@ const makeMove = command => {
                 position_pieces[kingCastle][0] = ' '
                 position_pieces[target.charAt(0)][parseInt(target.charAt(1))+1] = rook
             }
-        }else if(['e','c'].includes(modifier_pieces)) {
-            piece = command[0].charAt(0)
-            source = command[0].slice(command[0].length-5, command[0].length-3) 
-            target = command[0].slice(command[0].length-3, command[0].length-1)
+        }else if([',',';'].includes(modifier_pieces)) {
+            source = command[0].slice(command[0].length-4, command[0].length-2) 
+            target = command[0].slice(command[0].length-2, command[0].length)
 
-            if(modifier_pieces == 'e'){
+            if(modifier_pieces == ';'){
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
                 position_pieces[source.charAt(0)][target.charAt(1)] = ' ' // delete en passant piece
-                position_pieces[target.charAt(0)][target.charAt(1)] = piece
-            }else if(modifier_pieces == 'c') {
+                position_pieces[target.charAt(0)][target.charAt(1)] = pawn
+            }else if(modifier_pieces == ',') {
                 update_store(modifiers.en_passant, {position: parseInt(target.charAt(1))})
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
-                position_pieces[target.charAt(0)][target.charAt(1)] = piece
+                position_pieces[target.charAt(0)][target.charAt(1)] = pawn
             }
         }else {
             piece = command[0].charAt(0)
-            source = command[0].slice(command[0].length-4, command[0].length-2) 
-            target = command[0].slice(command[0].length-2, command[0].length) 
-            position_pieces[source.charAt(0)][source.charAt(1)] = ' '
-            position_pieces[target.charAt(0)][target.charAt(1)] = piece
+            position_pieces[command[0].charAt(1)][command[0].charAt(2)] = ' '
+            position_pieces[command[0].charAt(3)][command[0].charAt(4)] = piece
             
             castle_modifiers(piece, source, white_turn) // after move add modifiers
         }
         
         afterMakeMove(command, modifier_pieces)
-
     }
+}
+
+const undoMove = () => {
+    let modifier_pieces = command[0].charAt(0)
 }
 
 const afterMakeMove = (command, modifier_pieces) => {
@@ -144,9 +158,13 @@ const afterMakeMove = (command, modifier_pieces) => {
 
     update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
     checkInsufficientMaterial(true) // simulation
+    const xeque = kingInXeque(position_pieces)
+    update_store(selected_piece_object.king_xeque, xeque ? (white_turn ? 'K' : 'k') : null) // mark enemy king xeque
+    // console.log('KSAISKJAI',xeque ? (white_turn ? 'K': 'k') : null)
     if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
     update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,2)})
-    renderBoard(null, null, selected_piece_object.last_piece_moved_)
+    update_store(modifiers.game_historic, [...modifiers.game_historic_, command[0]])
+    renderBoard(null, null, selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
     // console.log(!nodes)
     // if(playerTurn || !nodes) {
     // }
