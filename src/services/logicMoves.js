@@ -31,6 +31,8 @@ const selectSourcePiece = position => {
             renderBoard(selected_piece_object.selected_piece_, [], selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
         }else { // selected new piece
             const moves = getMoves(position_pieces[row][col], position_pieces, position, '')
+            console.log('POSSIBLE MOVES: ',moves)
+            modifiers.game_historic_.forEach((it, idx) => console.log(`${idx+1} ${it.sts.move}`))
             possibleMovesList = movesToPosition(moves)
             if(possibleMovesList.length > 0) {
                 update_store(selected_piece_object.selected_piece, {row, col})
@@ -39,8 +41,6 @@ const selectSourcePiece = position => {
             }
             
         }
-
-
     }
 }
 
@@ -53,7 +53,7 @@ const selectTargetPiece = target => {
         const get_move = list_moves.filter(it => it.includes(`${s_row}${s_col}${t_row}${t_col}`))
         if(get_move.length == 1) { // normal option
             beforeMakeMove(get_move)
-        }else if(get_move.length > 2) {
+        }else if(get_move.length > 2) { // promotion option
             renderPromotionInterface(get_move)
         }else {
             console.log('invalid move')
@@ -68,7 +68,6 @@ const selectTargetPiece = target => {
     update_store(possible_moves_object.possible_moves, [])
 }
 
-
 const selectPromotionPiece = (piece) => {
     update_store(promotion_modal_object.promotion_modal, false)
     beforeMakeMove([piece])
@@ -79,7 +78,7 @@ const beforeMakeMove = move => {
     setTimeout(() => {
         make_engine_moves()
         check_white_game()
-    }, 1000);
+    }, 500);
 }
 
 const makeMove = command => {
@@ -91,6 +90,7 @@ const makeMove = command => {
     let piece 
     let source
     let target
+    let en_passant = null
     let modifier_pieces = command[0].charAt(0)
     
     /*
@@ -136,7 +136,7 @@ const makeMove = command => {
                 position_pieces[source.charAt(0)][target.charAt(1)] = ' ' // delete en passant piece
                 position_pieces[target.charAt(0)][target.charAt(1)] = pawn
             }else if(modifier_pieces == ',') {
-                update_store(modifiers.en_passant, {position: parseInt(target.charAt(1))})
+                en_passant = parseInt(target.charAt(1))
                 position_pieces[source.charAt(0)][source.charAt(1)] = ' '
                 position_pieces[target.charAt(0)][target.charAt(1)] = pawn
             }
@@ -144,32 +144,58 @@ const makeMove = command => {
             piece = command[0].charAt(0)
             position_pieces[command[0].charAt(1)][command[0].charAt(2)] = ' '
             position_pieces[command[0].charAt(3)][command[0].charAt(4)] = piece
-            
-            castle_modifiers(piece, source, white_turn) // after move add modifiers
+            source = command[0].slice(1,3)
+            // castle_modifiers(piece, source, white_turn) // after move add modifiers
         }
         
-        afterMakeMove(command, modifier_pieces)
+        afterMakeMove(command, modifier_pieces, piece, source, en_passant)
     }
 }
 
 const undoMove = () => {
-    let modifier_pieces = command[0].charAt(0)
+    let command = null
+    const newHistoric = modifiers.game_historic_
+
+    for(let i=0;i<newHistoric.length;i++){
+        console.log(newHistoric[i])
+        if(newHistoric[i].head) {   
+            newHistoric[i].head = false
+            if(i > 0) newHistoric[i-1].head = true
+            command = newHistoric[i].sts.move
+        }
+    }
+
+    if(command) {
+        let piece = command.charAt(0)
+        position_pieces[command.charAt(1)][command.charAt(2)] = piece
+        position_pieces[command.charAt(3)][command.charAt(4)] = ' '
+    }
+    
+    renderBoard()
 }
 
-const afterMakeMove = (command, modifier_pieces) => {
+const afterMakeMove = (command, modifier_pieces, piece, source, en_passant=null) => {
     const { white_turn, white_player } = modifiers.game_settings_
+    let castle_status = castle_modifiers(piece, source, modifier_pieces)
 
+    
+    if(modifiers.game_historic_.length > 0) {
+        const newHistoric = modifiers.game_historic_
+        newHistoric[newHistoric.length-1].head = false
+    
+        update_store(modifiers.game_historic, newHistoric)
+    }
+   
     update_store(modifiers.game_settings, {white_turn: !white_turn, white_player}) // change the turn player
-    checkInsufficientMaterial(true) // simulation
+    checkInsufficientMaterial() 
     const xeque = kingInXeque(position_pieces)
     update_store(selected_piece_object.king_xeque, xeque ? (white_turn ? 'K' : 'k') : null) // mark enemy king xeque
-    // console.log('KSAISKJAI',xeque ? (white_turn ? 'K': 'k') : null)
-    if(modifier_pieces != 'c') update_store(modifiers.en_passant, {position: null}) // reset en-passant  
     update_store(selected_piece_object.last_piece_moved, {ini: command[0].substr(1,2), fin: command[0].substr(3,2)})
-    update_store(modifiers.game_historic, [...modifiers.game_historic_, command[0]])
+
+    update_store(modifiers.game_historic, [...modifiers.game_historic_, {head: true, sts: {move: command[0], castle: castle_status, en_passant}}])
     renderBoard(null, [], selected_piece_object.last_piece_moved_, selected_piece_object.king_xeque_)
     // console.log(!nodes)
-    // if(playerTurn || !nodes) {
+    // if(playerTurn) {
     // }
 }
 
@@ -215,28 +241,33 @@ const check_white_game = () => {
     if(xeque_mate_ == null) findPossibleMoves(isPlayerTurn) // player plays
 }
 
-const castle_modifiers = (piece, source, white_turn) => { //modify castles
-    if(white_turn) {
-        if(piece == 'k') {
-            update_store(modifiers.white_castle, {castle_k: false, castle_q: false})
-        }else if(piece == 'r' && source == 70) {
-            update_store(modifiers.white_castle, {castle_k: modifiers.white_castle_.castle_k, castle_q: false})
-        }else if(piece == 'r' && source == 77) {
-            update_store(modifiers.white_castle, {castle_k: false, castle_q: modifiers.white_castle_.castle_q})
-        }
-    }else {
-        if(piece == 'K') {
-            update_store(modifiers.black_castle, {castle_k: false, castle_q: false})
-        }else if(piece == 'R' && source == '00') {
-            update_store(modifiers.black_castle, {castle_k: modifiers.black_castle_.castle_k, castle_q: false})
-        }else if(piece == 'R' && source == '07') {
-            update_store(modifiers.black_castle, {castle_k: false, castle_q: modifiers.black_castle_.castle_q})
+const castle_modifiers = (piece, source, modifier_pieces) => { // modify castles
+    let lastMove =  modifiers.game_historic_[modifiers.game_historic_.length-2]
+    let hitoricLength = modifiers.game_historic_.length >= 2
+    let castle_status = hitoricLength ? 
+    {castle_k: lastMove.sts.castle.castle_k, castle_q: lastMove.sts.castle.castle_q} :
+    {castle_k: true, castle_q: true}
+
+    if(['k','K'].includes(piece) || ['-','_'].includes(modifier_pieces)) {
+        castle_status = {castle_k: false, castle_q: false}
+    }
+    if(['r','R'].includes(piece)) {
+        if(['00','70'].includes(source)) {
+            castle_status = hitoricLength ? 
+            {castle_k: lastMove.sts.castle.castle_k, castle_q: false} : 
+            {castle_k: true, castle_q: false}
+        }else if(['07','77'].includes(source)) {
+            castle_status = hitoricLength ? 
+            {castle_k: false, castle_q: lastMove.sts.castle.castle_q} : 
+            {castle_k: false, castle_q: true}
         }
     }
+    return castle_status
 }
 
   export {
       selectSourcePiece,
       selectTargetPiece,
-      selectPromotionPiece
+      selectPromotionPiece,
+      undoMove
   }

@@ -31,19 +31,17 @@ const renderBoardInterface = () => {
 }
 
 const restartGame = () => {
-    const { white_castle, black_castle, en_passant, xeque_mate } = modifiers
+    const { xeque_mate, game_historic } = modifiers
     const pieces = {
         0: ['R','N','B','Q','K','B','N','R'],
         1: 'P',
         6: 'p',
         7: ['r','n','b','q','k','b','n','r'],
     }
-    update_store(white_castle, { castle_k: true, castle_q: true })
-    update_store(black_castle, { castle_k: true, castle_q: true })
-    update_store(en_passant, { position: null })
     update_store(selected_piece_object.last_piece_moved, {ini: null, fin: null})
     update_store(selected_piece_object.king_xeque, null)
     update_store(xeque_mate, null)
+    update_store(game_historic, [])
     
     for(let row=0;row<=7;row++)
         for(let col=0;col<=7;col++) {

@@ -83,18 +83,24 @@ const pawnPromotion = (moves, value, old_position, new_position, target) => {
 }
 
 const castles = (moves, value, old_position, new_position) => {
-    const { white_turn } = modifiers.game_settings_
     const {old_row, old_col} = old_position
     const {new_row, new_col} = new_position
     let isSafeQueen = true
     let isSafeKing = true
-    const { 
-        white_castle_: {castle_k: white_castle_king, castle_q: white_castle_queen},
-        black_castle_: {castle_k: black_castle_king, castle_q: black_castle_queen}
-    } = modifiers
-    const kingCastle = white_turn ? white_castle_king : black_castle_king
-    const queenCastle = white_turn ? white_castle_queen : black_castle_queen
-      
+    // let lastMove = modifiers.game_historic_[modifiers.game_historic_.length-2]
+    let lastMove 
+    let historicLength 
+    // let historicLength = modifiers.game_historic_.length >= 2
+
+    for(let i=0;i<modifiers.game_historic_.length;i++) {
+        if(modifiers.game_historic_[i].head) {
+            lastMove = modifiers.game_historic_[i-1]
+            historicLength = i >= 2
+        }
+    }
+    const kingCastle = historicLength ?  lastMove.sts.castle.castle_k : true
+    const queenCastle = historicLength ?  lastMove.sts.castle.castle_q : true
+
     const validate_check_position = safeKing(value, old_position, new_position, position_pieces)
     
     if(validate_check_position) {
@@ -196,9 +202,11 @@ const pawnMoves = (value, position, snapshot) => {
         }
     }
     if(row == pawnEnPassant) {
-        if(modifiers.en_passant_.position == (col-1)) 
+        const lastEnPassant = modifiers.game_historic_[modifiers.game_historic_.length-1].sts.en_passant
+
+        if(lastEnPassant == (col-1)) 
             moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col-1}, null, en_passant[0])
-        else if(modifiers.en_passant_.position == (col+1))
+        else if(lastEnPassant == (col+1))
             moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col+1}, null, en_passant[0])
     }
     return moves

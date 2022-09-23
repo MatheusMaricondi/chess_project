@@ -1,7 +1,7 @@
 <script context="module">
   import { position_pieces, promotion_modal_object, update_store } from '../store/index'
   import { pieces as p } from '../helpers/utils'
-  import { selectSourcePiece, selectTargetPiece, selectPromotionPiece } from '../services/logicMoves'
+  import { selectSourcePiece, selectTargetPiece, selectPromotionPiece, undoMove } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
   import { standard } from '../services/getPieces';
   import { kingInXeque } from '../services/safeKing';
@@ -133,7 +133,7 @@
   <div id='promotion'></div>
   <div id='mate'></div>
 
-  <button>Undo</button>
+  <button on:click={undoMove}>Undo</button>
   <button>Next</button>
 </main>
 

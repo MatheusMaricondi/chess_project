@@ -1,14 +1,14 @@
-import { writable, derived } from 'svelte/store';
+import { writable } from 'svelte/store';
 
 let position_pieces = writable([
-  [' ',' ',' ','R',' ',' ',' ',' '],
-  [' ',' ','p',' ',' ',' ','n',' '],
-  [' ',' ',' ',' ',' ',' ',' ','b'],
-  [' ','P',' ',' ',' ',' ',' ',' '],
-  [' ','p',' ','r',' ','P',' ','K'],
-  [' ',' ',' ',' ',' ','p',' ',' '],
+  [' ',' ',' ',' ','K',' ',' ','R'],
+  [' ',' ',' ',' ','P',' ','N','P'],
+  [' ',' ','P',' ','N',' ',' ','b'],
+  [' ',' ','p',' ',' ',' ',' ',' '],
+  [' ','p',' ',' ',' ','P',' ',' '],
+  [' ',' ',' ',' ',' ',' ',' ',' '],
   [' ',' ',' ',' ',' ',' ','p',' '],
-  ['r',' ',' ',' ','k',' ',' ',' ']
+  ['r',' ',' ',' ','k',' ',' ','r']
 ])
 
 let promotion_modal_object = {
@@ -18,19 +18,13 @@ let promotion_modal_object = {
 
 
 let modifiers = {
-  white_castle: writable({castle_k: true, castle_q: true}),
-  white_castle_: writable({}),
-  black_castle: writable({castle_k: true, castle_q: true}),
-  black_castle_: writable({}),
-  en_passant: writable({position: null}), // position by column 0 .. 7
-  en_passant_: writable({}),
   game_settings: writable({white_turn: true, white_player: true}), // white true
   game_settings_: writable({}),
-  engine_settings: writable({deep: 1, nodes: 2, analise: false}),
+  engine_settings: writable({deep: 1, nodes: 0, analise: false}),
   engine_settings_: writable({}),
   xeque_mate: writable(null), // 0: draw, 1: player win, 2: enigine win
   xeque_mate_: writable(null),
-  game_historic: writable([]),
+  game_historic: writable([]), // head: true, sts: {move: null, castle: {castle_k: true, castle_q: true}, en_passant: null}
   game_historic_: writable([]),
 }
 
@@ -54,9 +48,6 @@ selected_piece_object.last_piece_moved.subscribe(value => selected_piece_object.
 selected_piece_object.king_xeque.subscribe(value => selected_piece_object.king_xeque_ = value)
 
 promotion_modal_object.promotion_modal.subscribe(value => promotion_modal_object.promotion_modal_ = value)
-modifiers.white_castle.subscribe(value => modifiers.white_castle_ = value)
-modifiers.black_castle.subscribe(value => modifiers.black_castle_ = value)
-modifiers.en_passant.subscribe(value => modifiers.en_passant_ = value)
 modifiers.game_settings.subscribe(value => modifiers.game_settings_ = value)
 modifiers.xeque_mate.subscribe(value => modifiers.xeque_mate_ = value)
 modifiers.engine_settings.subscribe(value => modifiers.engine_settings_ = value)
