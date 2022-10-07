@@ -5,7 +5,7 @@ const renderMateInterface = status => {
     const { xeque_mate, game_settings, game_settings_: {white_turn, white_player} } = modifiers
     let text
     update_store(xeque_mate, status)
-    update_store(game_settings, {white_turn: !white_turn, white_player})
+    // update_store(game_settings, {white_turn: !white_turn, white_player})
 
     switch(status) {
         case 1: text = 'You won'; break;

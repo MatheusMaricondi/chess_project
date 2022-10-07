@@ -29,7 +29,7 @@ const safeKing = (piece, old_position, new_position, snapshot, enPassant = false
     return kingSafe
 }
 
-const checkPiecesAround = snapshot => {
+const checkPiecesAround = (snapshot) => {
     const { king } = table_pieces().pieces
     let returnSafes
     snapshot.forEach((row, row_i) => {
@@ -39,7 +39,6 @@ const checkPiecesAround = snapshot => {
             }
         })
     });
-
     return returnSafes
 }
 
@@ -48,7 +47,6 @@ const withoutRooks = (position, snapshot) => {
     const {row, col} = position
     const { target_pieces, same_pieces } = pieces()
     const { rook, queen, king } = table_pieces().target
-
     for(let i=-3;i<=3;i+=2) {
         let static_direction = (i<0) ? row : col
         let direction = (i%2 == 1) ? row : col
@@ -97,13 +95,9 @@ const withoutKnights = (position, snapshot) => {
     for(let r=row-2; r<=row+2; r++) {
         for(let c=col-2; c<=col+2; c++) {
             if((r>=0 && r<=7) && (c>=0 && c<=7)) {
-                // console.log(`11111 row ${r} col ${c}`)
                 if((r-row)/(c-col) != 1 && (r-row)/(c-col) != -1 && (r!=row && c!=col)) {
-                    // console.log(`row ${r} col ${c}`)
                     if(target_pieces.test(snapshot[r][c])) {
-                        // console.log(r,c, snapshot[r][c],[knight].includes(snapshot[r][c]))
                         if([knight].includes(snapshot[r][c])) return false
-                        // break;
                     }
                 }
             }

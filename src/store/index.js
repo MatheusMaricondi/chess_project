@@ -1,14 +1,14 @@
 import { writable } from 'svelte/store';
 
 let position_pieces = writable([
-  [' ',' ',' ',' ','K',' ',' ','R'],
-  [' ',' ',' ',' ','P',' ','N','P'],
-  [' ',' ','P',' ','N',' ',' ','b'],
-  [' ',' ','p',' ',' ',' ',' ',' '],
-  [' ','p',' ',' ',' ','P',' ',' '],
   [' ',' ',' ',' ',' ',' ',' ',' '],
-  [' ',' ',' ',' ',' ',' ','p',' '],
-  ['r',' ',' ',' ','k',' ',' ','r']
+  [' ',' ',' ',' ',' ',' ',' ',' '],
+  [' ',' ',' ',' ',' ','K',' ',' '],
+  [' ',' ',' ',' ','N',' ',' ',' '],
+  [' ',' ','P',' ',' ',' ','b',' '],
+  [' ',' ',' ','P',' ',' ',' ','p'],
+  [' ',' ',' ',' ',' ',' ',' ',' '],
+  [' ',' ',' ',' ','k',' ',' ',' ']
 ])
 
 let promotion_modal_object = {
@@ -16,11 +16,23 @@ let promotion_modal_object = {
   promotion_modal_: writable(false)
 }
 
+/*
+  commands structure
+
+  p1231Q, b4333R capture
+  p1243, b2344 move
+  ^1234qB promotion capture
+  ^1244q promotion move
+  ,3344 cria en-passant
+  ;2344 consome en-passant
+  -3244 castle k
+  _2344 castle q
+*/
 
 let modifiers = {
   game_settings: writable({white_turn: true, white_player: true}), // white true
   game_settings_: writable({}),
-  engine_settings: writable({deep: 1, nodes: 0, analise: false}),
+  engine_settings: writable({deep: 3, tree: [], analise: false}), // tree: [{node: 0, command: null, evaluate: null, children: []}]
   engine_settings_: writable({}),
   xeque_mate: writable(null), // 0: draw, 1: player win, 2: enigine win
   xeque_mate_: writable(null),

@@ -1,38 +1,48 @@
-import { position_pieces, modifiers } from '../store/index'
+import { position_pieces, modifiers, update_store } from '../store/index'
 import { pieces } from '../helpers/utils'
 import { safeKing, kingInXeque } from './safeKing'
 import { table_pieces } from '../helpers/constants'
 import { renderMateInterface } from './interface'
+import { makeMove, undoMove } from './logicMoves'
+import Tree from './engine/treeAlgorithm'
 
-const findPossibleMoves = isEngineTurn => {
+const findPossibleMoves = (isEngineTurn, engineStatus) => {
+    const { analise } = modifiers.engine_settings_
     let moves = ''
-    let better_move = ''
+    const gameStatus = isEngineTurn ? 99 : -99
 
     position_pieces.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
         moves = getMoves(position_pieces[row_i][col_i], position_pieces, {row: row_i, col: col_i}, moves)
       })
     });
-    if(isEngineTurn) console.log('ENGINE POSSIBLE MOVES: ',moves)
     
-    if(moves != '') {
-        better_move = isEngineTurn ? 
-        filterBetterMove(moves) : moves
+    if(!isEngineTurn && !analise) {
+        return (moves != '') ? moves : (kingInXeque(position_pieces) ? 2 : 0)
     }else {
-        better_move = kingInXeque(position_pieces) ? (isEngineTurn ? 1 : 2) : 0 // 1: player won; 2: engine won; 0: draw
-        renderMateInterface(better_move)
-        return false
+        console.log('ENGINE POSSIBLE MOVES: ',moves)
+        return (moves != '') ? findBetterMove(moves) : (kingInXeque(position_pieces) ? findBetterMove('', gameStatus) : findBetterMove('', 0))
     }
-    return better_move
 }
 
-const filterBetterMove = moves => {
-    const moves_list = moves.split(' ')
-    moves_list.shift()
-    const rand = Math.floor(Math.random() * moves_list.length)
-    const result = moves_list[rand] // apply logic here
+const findBetterMove = (moves, status=null) => {
+    let moves_list
+    const engineDeep = 3
+    
+    if(!status) {
+        moves_list = moves.split(' ')
+        moves_list.shift()
 
-    return result
+        const engineTree = new Tree(engineDeep)
+        engineTree.startEngine(moves_list)
+
+        // makeMove([moves_list]) 
+        // undoMove()
+        return moves_list[0]
+    }else {
+        // command decisivo
+        // linha de mate, derrota ou empate
+    }
 }
 
 const getMoves = (value, snapshot, position, moves) => {
@@ -49,7 +59,7 @@ const getMoves = (value, snapshot, position, moves) => {
     return moves
 }
 
-const makeMove = (moves, value, old_position, new_position, target='', game_modifiers=null) => {
+const createMove = (moves, value, old_position, new_position, target='', game_modifiers=null) => {
     switch(game_modifiers) { // 1=promotion; 2=catles; 3=en_passant
         case 1: moves = pawnPromotion(moves, value, old_position, new_position, target);break;
         case 2: moves = castles(moves, value, old_position, new_position);break;
@@ -156,21 +166,21 @@ const pawnMoves = (value, position, snapshot) => {
             for(let row_ = row+pawnDirection; row_ <= (row+first_move); row_+=pawnDirection) {
                 if((col_ != col) && ![-1,8].includes(col_)) { // capture
                     if(row == pawnPromotion && target_pieces.test(snapshot[row_][col_])) { // promotion capture
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_], promotion)
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_], promotion)
                     }else if(target_pieces.test(snapshot[row_][col_])){ // normal capture 
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
                     }
                 }else if(!static_pieces.test(snapshot[row+pawnDirection][col_])) { // move
                     if(row == pawnStart && !static_pieces.test(snapshot[row+pawnDirection][col_]) && !static_pieces.test(snapshot[row_][col_])) { //verifica se o lance se coloca em en-passant
                         if((row_ == row+(pawnDirection+pawnDirection)) && [snapshot[row_][col_-1],snapshot[row_][col_+1]].includes(pawn)) {
-                            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, en_passant[1])
+                            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, en_passant[1])
                         }else {
-                            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                         }
                     }else if(row == pawnPromotion && !static_pieces.test(snapshot[row_][col_])) { // promotion move
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, promotion)
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, promotion)
                     }else if((pawnPromotion !=row) && !static_pieces.test(snapshot[row_][col_])) { // all another moves
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                     }
                 }
             }
@@ -181,33 +191,36 @@ const pawnMoves = (value, position, snapshot) => {
             for(let row_ = row+pawnDirection; row_ >= (row+first_move); row_+=pawnDirection) { 
                 if((col_ != col) && ![-1,8].includes(col_)) { // capture
                     if(row == pawnPromotion && target_pieces.test(snapshot[row_][col_])) { // promotion capture
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_], promotion)
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_], promotion)
                     }else if(target_pieces.test(snapshot[row_][col_])){ // normal capture 
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
                     }
                 }else if(!static_pieces.test(snapshot[row+pawnDirection][col_])){ // move
                     if(row == pawnStart && !static_pieces.test(snapshot[row+pawnDirection][col_]) && !static_pieces.test(snapshot[row_][col_])) { //verifica se o lance se coloca em en-passant
                         if((row_ == row+(pawnDirection+pawnDirection)) && [snapshot[row_][col_-1],snapshot[row_][col_+1]].includes(pawn)) {
-                            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, en_passant[1])
+                            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, en_passant[1])
                         }else {
-                            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                         }
                     }else if(row == pawnPromotion && !static_pieces.test(snapshot[row_][col_])) { // promotion move
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, promotion)
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, undefined, promotion)
                     }else if((pawnPromotion !=row) && !static_pieces.test(snapshot[row_][col_])) { // all another moves
-                        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                     }
                 }
             }
         }
     }
     if(row == pawnEnPassant) {
-        const lastEnPassant = modifiers.game_historic_[modifiers.game_historic_.length-1].sts.en_passant
+        let lastEnPassant 
+        if(modifiers.game_historic_.length > 0) {
+           lastEnPassant = modifiers.game_historic_[modifiers.game_historic_.length-1].sts.en_passant
+        }
 
         if(lastEnPassant == (col-1)) 
-            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col-1}, null, en_passant[0])
+            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col-1}, null, en_passant[0])
         else if(lastEnPassant == (col+1))
-            moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col+1}, null, en_passant[0])
+            moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row+pawnDirection, new_col: col+1}, null, en_passant[0])
     }
     return moves
 }
@@ -225,8 +238,8 @@ const knightMoves = (value, position, snapshot) => {
 
                 if(!same_pieces.test(snapshot[r][c])) {
                     moves = target_pieces.test(snapshot[r][c]) ? 
-                    makeMove(moves, value, {old_row: row, old_col: col}, {new_row: r, new_col: c}, snapshot[r][c]) : 
-                    makeMove(moves, value, {old_row: row, old_col: col}, {new_row: r, new_col: c})
+                    createMove(moves, value, {old_row: row, old_col: col}, {new_row: r, new_col: c}, snapshot[r][c]) : 
+                    createMove(moves, value, {old_row: row, old_col: col}, {new_row: r, new_col: c})
                 }
             }
         }
@@ -248,12 +261,12 @@ const rookMoves = (value, position, snapshot, isKing=false) => {
             
             if((row_!=row) || (col_!=col)) {
                 if(target_pieces.test(snapshot[row_][col_])) {
-                    moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
+                    moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
                     break;
                 }else if(same_pieces.test(snapshot[row_][col_])) {
                     break;
                 }else {
-                    moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                    moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                     if(isKing) break;
                 }
             }
@@ -273,10 +286,10 @@ const bishopMoves = (value, position, snapshot, isKing=false) => {
             if(same_pieces.test(snapshot[row_][col_])) {
                 break;
             }else if(target_pieces.test(snapshot[row_][col_])) {
-                moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
+                moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_}, snapshot[row_][col_])
                 break;
             }else {
-                moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
+                moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row_, new_col: col_})
                 if(isKing) break;
             }
         }
@@ -308,7 +321,7 @@ const castleMoves = (value, position) => {
     let moves = ''
     const castle = 2
     if(row == castle_row && col == 4) {
-        moves = makeMove(moves, value, {old_row: row, old_col: col}, {new_row: row, new_col: col}, undefined, castle)
+        moves = createMove(moves, value, {old_row: row, old_col: col}, {new_row: row, new_col: col}, undefined, castle)
     }
     return moves
 }

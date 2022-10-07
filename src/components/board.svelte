@@ -4,7 +4,7 @@
   import { selectSourcePiece, selectTargetPiece, selectPromotionPiece, undoMove } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
   import { standard } from '../services/getPieces';
-  import { kingInXeque } from '../services/safeKing';
+
 
   let chessboard = Array(8).fill().map(() => Array(8).fill())
   let select_square = '#89c88a'
