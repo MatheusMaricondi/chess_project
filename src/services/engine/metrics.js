@@ -9,7 +9,7 @@ const lineAnalise = snapshot => {
 const piecesValue = snapshot => {
     const {pieces, target} = table_pieces()
     let value = 0
-    console.log(pieces.pawn)
+    
     for(let row=0;row<=7;row++) {
         for(let col=0;col<=7;col++) {
             switch(snapshot[row][col]) {

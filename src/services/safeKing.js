@@ -31,6 +31,7 @@ const safeKing = (piece, old_position, new_position, snapshot, enPassant = false
 
 const checkPiecesAround = (snapshot) => {
     const { king } = table_pieces().pieces
+
     let returnSafes
     snapshot.forEach((row, row_i) => {
         row.forEach((col, col_i) => {

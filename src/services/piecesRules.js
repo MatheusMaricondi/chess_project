@@ -6,39 +6,47 @@ import { renderMateInterface } from './interface'
 import { makeMove, undoMove } from './logicMoves'
 import Tree from './engine/treeAlgorithm'
 
-const findPossibleMoves = (isEngineTurn, engineStatus) => {
+const findPossibleMoves = (isEngineTurn) => {
     const { analise } = modifiers.engine_settings_
     let moves = ''
     const gameStatus = isEngineTurn ? 99 : -99
+    const engineDeep = 7
+    const engineTree = new Tree(engineDeep)
+    engineTree.startEngine()
 
-    position_pieces.forEach((row, row_i) => {
-      row.forEach((col, col_i) => {
-        moves = getMoves(position_pieces[row_i][col_i], position_pieces, {row: row_i, col: col_i}, moves)
-      })
-    });
-    
-    if(!isEngineTurn && !analise) {
-        return (moves != '') ? moves : (kingInXeque(position_pieces) ? 2 : 0)
-    }else {
-        console.log('ENGINE POSSIBLE MOVES: ',moves)
-        return (moves != '') ? findBetterMove(moves) : (kingInXeque(position_pieces) ? findBetterMove('', gameStatus) : findBetterMove('', 0))
-    }
+    console.log(engineTree)
+// console.log(modifiers.game_historic_)
+
+    // position_pieces.forEach((row, row_i) => {
+    //   row.forEach((col, col_i) => {
+    //     moves = getMoves(position_pieces[row_i][col_i], position_pieces, {row: row_i, col: col_i}, moves)
+    //   })
+    // });
+
+    // if(!isEngineTurn && !analise) {
+    //     return (moves != '') ? moves : (kingInXeque(position_pieces) ? 2 : 0)
+    // }else {
+    //     console.log('ENGINE POSSIBLE MOVES: ',moves)
+    //     return (moves != '') ? findBetterMove(moves) : (kingInXeque(position_pieces) ? findBetterMove('', gameStatus) : findBetterMove('', 0))
+    // }
 }
 
 const findBetterMove = (moves, status=null) => {
     let moves_list
-    const engineDeep = 3
+    
     
     if(!status) {
         moves_list = moves.split(' ')
         moves_list.shift()
 
-        const engineTree = new Tree(engineDeep)
-        engineTree.startEngine(moves_list)
+        
+        // const engineTree = new Tree(engineDeep)
+        // engineTree.startEngine(moves_list)
+   
+        // makeMove([moves_list[0]])
+        console.log(modifiers.game_historic_)
 
-        // makeMove([moves_list]) 
-        // undoMove()
-        return moves_list[0]
+        // return moves_list[0]
     }else {
         // command decisivo
         // linha de mate, derrota ou empate
@@ -47,7 +55,7 @@ const findBetterMove = (moves, status=null) => {
 
 const getMoves = (value, snapshot, position, moves) => {
     const { pawn, rook, knight, bishop, queen, king} = table_pieces().pieces
-    
+
     switch(value) {
         case pawn: moves += pawnMoves(value, position, snapshot); break;
         case knight: moves += knightMoves(value, position, snapshot); break;

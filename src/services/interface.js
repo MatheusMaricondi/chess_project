@@ -8,8 +8,8 @@ const renderMateInterface = status => {
     // update_store(game_settings, {white_turn: !white_turn, white_player})
 
     switch(status) {
-        case 1: text = 'You won'; break;
-        case 2: text = 'The machine won'; break;
+        case -99: text = 'You won'; break;
+        case 99: text = 'The machine won'; break;
         case 0: text = 'The game is drow'; break;
     }
     renderStatusGameBox(text)

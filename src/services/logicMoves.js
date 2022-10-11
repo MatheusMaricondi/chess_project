@@ -65,8 +65,9 @@ const selectPromotionPiece = (piece) => {
 
 const beforeMakeMove = move => {
     makeMove(move)
+    // console.log(modifiers.game_historic_)
     make_engine_moves()
-    check_white_game()
+    // check_white_game()
 }
 
 const makeMove = command => {
@@ -183,18 +184,18 @@ const undoMove = () => {
 const afterMakeMove = (command, modifier_pieces, piece, source, en_passant=null) => {
     const castleStatus = castle_modifiers(piece, source, modifier_pieces)
     const lastPieceMoved = {ini: command[0].substr(1,2), fin: command[0].substr(3,2)}
-    const move = {head: true, sts: {move: command[0], castle: castleStatus, en_passant}, layout: {xeque: null, last_pieces: lastPieceMoved}}
+    const newMove = {head: true, sts: {move: command[0], castle: castleStatus, en_passant}, layout: {xeque: null, last_pieces: lastPieceMoved}}
 
     if(modifiers.game_historic_.length > 0) {
         const newHistoric = modifiers.game_historic_
         newHistoric[newHistoric.length-1].head = false
         update_store(modifiers.game_historic, newHistoric)
     }
+    // checkInsufficientMaterial() 
+    
+    // console.log('MAKED',move)
 
-    if(!modifiers.engine_settings_.analise)
-        checkInsufficientMaterial() 
-
-    update_store(modifiers.game_historic, [...modifiers.game_historic_, move])
+    update_store(modifiers.game_historic, [...modifiers.game_historic_, newMove])
     const xequeStatus = verifyXeque()
         
     if(!modifiers.engine_settings_.analise)
@@ -220,7 +221,6 @@ const checkInsufficientMaterial = () => {
     const pieces = new RegExp(/[pPrRqQ]/)
     const knights = new RegExp(/[nN]/)
     const bishop = new RegExp(/[bB]/)
-
     const drawPieces = {n: 0, wb: 0, bb: 0, N: 0, wB: 0, bB: 0}
 
     for(let row=0;row<=7;row++)
@@ -245,10 +245,16 @@ const make_engine_moves = () => {
 
     if(isEngineTurn) {
         update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: true})
+
+
         const better_move = findPossibleMoves(isEngineTurn) // engine plays
+        
+        update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: true})
+
         if(better_move) {
-            update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: false})
-            makeMove([better_move])
+
+            // update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: false})
+            // makeMove([better_move])
         }
     }
 }
