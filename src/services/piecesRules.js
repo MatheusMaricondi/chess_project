@@ -1,57 +1,18 @@
-import { position_pieces, modifiers, update_store } from '../store/index'
+import { position_pieces, modifiers } from '../store/index'
 import { pieces } from '../helpers/utils'
-import { safeKing, kingInXeque } from './safeKing'
+import { safeKing } from './safeKing'
 import { table_pieces } from '../helpers/constants'
-import { renderMateInterface } from './interface'
-import { makeMove, undoMove } from './logicMoves'
 import Tree from './engine/treeAlgorithm'
 
-const findPossibleMoves = (isEngineTurn) => {
-    const { analise } = modifiers.engine_settings_
-    let moves = ''
-    const gameStatus = isEngineTurn ? 99 : -99
-    const engineDeep = 7
-    const engineTree = new Tree(engineDeep)
+const findPossibleMoves = () => {
+    console.time('engine')
+    const engineTree = new Tree()
     engineTree.startEngine()
-
+    console.timeEnd('engine')
     console.log(engineTree)
-// console.log(modifiers.game_historic_)
-
-    // position_pieces.forEach((row, row_i) => {
-    //   row.forEach((col, col_i) => {
-    //     moves = getMoves(position_pieces[row_i][col_i], position_pieces, {row: row_i, col: col_i}, moves)
-    //   })
-    // });
-
-    // if(!isEngineTurn && !analise) {
-    //     return (moves != '') ? moves : (kingInXeque(position_pieces) ? 2 : 0)
-    // }else {
-    //     console.log('ENGINE POSSIBLE MOVES: ',moves)
-    //     return (moves != '') ? findBetterMove(moves) : (kingInXeque(position_pieces) ? findBetterMove('', gameStatus) : findBetterMove('', 0))
-    // }
 }
 
-const findBetterMove = (moves, status=null) => {
-    let moves_list
-    
-    
-    if(!status) {
-        moves_list = moves.split(' ')
-        moves_list.shift()
 
-        
-        // const engineTree = new Tree(engineDeep)
-        // engineTree.startEngine(moves_list)
-   
-        // makeMove([moves_list[0]])
-        console.log(modifiers.game_historic_)
-
-        // return moves_list[0]
-    }else {
-        // command decisivo
-        // linha de mate, derrota ou empate
-    }
-}
 
 const getMoves = (value, snapshot, position, moves) => {
     const { pawn, rook, knight, bishop, queen, king} = table_pieces().pieces
@@ -85,6 +46,7 @@ const defaultMove = (moves, value, old_position, new_position, target) => {
     if(isSafe) moves += ` ${value}${old_row}${old_col}${new_row}${new_col}${target}`
     return moves
 }
+
 const pawnPromotion = (moves, value, old_position, new_position, target) => {
     const { rook, knight, bishop, queen } = table_pieces().pieces
 
@@ -105,19 +67,13 @@ const castles = (moves, value, old_position, new_position) => {
     const {new_row, new_col} = new_position
     let isSafeQueen = true
     let isSafeKing = true
-    // let lastMove = modifiers.game_historic_[modifiers.game_historic_.length-2]
-    let lastMove 
-    let historicLength 
-    // let historicLength = modifiers.game_historic_.length >= 2
+    let lastMove = null
 
-    for(let i=0;i<modifiers.game_historic_.length;i++) {
-        if(modifiers.game_historic_[i].head) {
-            lastMove = modifiers.game_historic_[i-1]
-            historicLength = i >= 2
-        }
+    if(modifiers.game_historic_.length > 2) {
+        lastMove = modifiers.game_historic_[modifiers.game_historic_.length-2]
     }
-    const kingCastle = historicLength ?  lastMove.sts.castle.castle_k : true
-    const queenCastle = historicLength ?  lastMove.sts.castle.castle_q : true
+    const kingCastle = lastMove ?  lastMove.sts.castle.castle_k : true
+    const queenCastle = lastMove ?  lastMove.sts.castle.castle_q : true
 
     const validate_check_position = safeKing(value, old_position, new_position, position_pieces)
     
@@ -165,7 +121,7 @@ const pawnMoves = (value, position, snapshot) => {
     const { static_pieces, target_pieces, dinamicRules: { pawnDirection, pawnStart, pawnPromotion, pawnEnPassant } } = pieces()
     const promotion = 1
     const en_passant = [3,4] // 3 - consume, 4 - create
-    const { pawn } = table_pieces().target
+    const { pawn } = table_pieces().pieces
     let moves = ''
 
     if(pawnDirection == 1) {

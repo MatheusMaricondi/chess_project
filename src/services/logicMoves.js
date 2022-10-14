@@ -4,7 +4,7 @@ import { findPossibleMoves, getMoves } from '../services/piecesRules'
 import { table_pieces } from '../helpers/constants'
 import { pieces, getHistoricLayout, movesToPosition } from '../helpers/utils'
 import { kingInXeque } from './safeKing'
-import { renderPromotionInterface, renderMateInterface } from './interface'
+import { renderPromotionInterface } from './interface'
 
 const selectSourcePiece = position => {
     const {row, col} = position
@@ -65,9 +65,9 @@ const selectPromotionPiece = (piece) => {
 
 const beforeMakeMove = move => {
     makeMove(move)
-    // console.log(modifiers.game_historic_)
-    make_engine_moves()
-    // check_white_game()
+    setTimeout(() => {
+        make_engine_moves()
+    },0)
 }
 
 const makeMove = command => {
@@ -131,22 +131,12 @@ const undoMove = () => {
     const { dinamicRules: { kingCastleUndo, kingTargetUndo} } = pieces()
     const { lastMoves, xequeStatus } = getHistoricLayout()
     let command = null
-    let newHistoric = modifiers.game_historic_
-    
-    for(let i=0;i<newHistoric.length;i++) {
-        if(newHistoric[i].head) {   
-            newHistoric[i].head = false
-            if(i > 0) {
-                newHistoric[i-1].head = true
-            } 
-            command = newHistoric[i].sts.move
-        }
+
+    if(modifiers.game_historic_.length > 0) {
+        command = modifiers.game_historic_[modifiers.game_historic_.length-1].sts.move
+        const newHistoric = modifiers.game_historic_.slice(0,modifiers.game_historic_.length-1)
+        update_store(modifiers.game_historic, newHistoric)
     }
-    const currentHead = newHistoric.findIndex(it => it.head)
-    newHistoric = newHistoric.slice(0, currentHead+1)
-
-    update_store(modifiers.game_historic, newHistoric)
-
     if(command) {
         let modifiers = command.charAt(0)
 
@@ -184,25 +174,13 @@ const undoMove = () => {
 const afterMakeMove = (command, modifier_pieces, piece, source, en_passant=null) => {
     const castleStatus = castle_modifiers(piece, source, modifier_pieces)
     const lastPieceMoved = {ini: command[0].substr(1,2), fin: command[0].substr(3,2)}
-    const newMove = {head: true, sts: {move: command[0], castle: castleStatus, en_passant}, layout: {xeque: null, last_pieces: lastPieceMoved}}
-
-    if(modifiers.game_historic_.length > 0) {
-        const newHistoric = modifiers.game_historic_
-        newHistoric[newHistoric.length-1].head = false
-        update_store(modifiers.game_historic, newHistoric)
-    }
-    // checkInsufficientMaterial() 
-    
-    // console.log('MAKED',move)
+    const newMove = {sts: {move: command[0], castle: castleStatus, en_passant}, layout: {xeque: null, last_pieces: lastPieceMoved}}
 
     update_store(modifiers.game_historic, [...modifiers.game_historic_, newMove])
     const xequeStatus = verifyXeque()
         
-    if(!modifiers.engine_settings_.analise)
+    if(!modifiers.engine_settings_.analise) 
         renderBoard(null, [], lastPieceMoved, xequeStatus)
-    // console.log(!nodes)
-    // if(playerTurn) {
-    // }
 }
 const verifyXeque = () => {
     const { white_turn } = pieces()
@@ -217,27 +195,6 @@ const verifyXeque = () => {
 
     return xeque_status
 }
-const checkInsufficientMaterial = () => {
-    const pieces = new RegExp(/[pPrRqQ]/)
-    const knights = new RegExp(/[nN]/)
-    const bishop = new RegExp(/[bB]/)
-    const drawPieces = {n: 0, wb: 0, bb: 0, N: 0, wB: 0, bB: 0}
-
-    for(let row=0;row<=7;row++)
-        for(let col=0;col<=7;col++) {
-            if(pieces.test(position_pieces[row][col])) return false
-            if(knights.test(position_pieces[row][col])) {
-                drawPieces[position_pieces[row][col]] ++
-            }
-            if(bishop.test(position_pieces[row][col])) {
-                !((row+col)%2) ? drawPieces[`w${position_pieces[row][col]}`]++ : drawPieces[`b${position_pieces[row][col]}`]++
-            }
-        }
-    if((!!(drawPieces.wb && drawPieces.bb) || !!((drawPieces.wb | drawPieces.bb) && drawPieces.n)) || !!(drawPieces.n > 2)) return false
-    if((!!(drawPieces.wB && drawPieces.bB) || !!((drawPieces.wB | drawPieces.bB) && drawPieces.N)) || !!(drawPieces.N > 2)) return false
-   
-    return renderMateInterface(0)
-}
 
 const make_engine_moves = () => {
     const { white_turn } = pieces()
@@ -249,7 +206,7 @@ const make_engine_moves = () => {
 
         const better_move = findPossibleMoves(isEngineTurn) // engine plays
         
-        update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: true})
+        update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: false})
 
         if(better_move) {
 
@@ -257,13 +214,6 @@ const make_engine_moves = () => {
             // makeMove([better_move])
         }
     }
-}
-
-const check_white_game = () => {
-    const { white_turn } = pieces()
-    const { xeque_mate_ } = modifiers
-
-    if(xeque_mate_ == null) findPossibleMoves(!white_turn) // player plays
 }
 
 const castle_modifiers = (piece, source, modifier_pieces) => { // modify castles

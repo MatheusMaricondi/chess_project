@@ -2,7 +2,8 @@ import { modifiers } from "../store";
 
 const table_pieces = () => {
     const { game_historic_ } = modifiers
-    const movePosition = game_historic_.findIndex(it => it.head)
+    // const movePosition = game_historic_.findIndex(it => it.head)
+    const movePosition = game_historic_.length-1
     const whiteTurn = (movePosition%2 != 0)
 
     const lowerPieces = ['p','r','b','n','q','k']

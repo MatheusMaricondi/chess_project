@@ -2,9 +2,7 @@ import { modifiers } from  '../store/index'
 
 const pieces = () => {
     const { game_historic_ } = modifiers
-
-    // console.log(game_historic_)
-    const movePosition = game_historic_.findIndex(it => it.head)
+    const movePosition = game_historic_.length-1
     const whiteTurn = (movePosition%2 != 0)
 
     const dinamicRules = {
@@ -32,7 +30,7 @@ const getHistoricLayout = () => {
     let lastMoves, xequeStatus = []
 
     if(game_historic_.length > 0) {
-        const moves = game_historic_.filter(it => it.head)[0]
+        const moves = game_historic_[game_historic_.length-1]
         if(moves) {
             lastMoves = moves.layout.last_pieces
             xequeStatus = moves.layout.xeque

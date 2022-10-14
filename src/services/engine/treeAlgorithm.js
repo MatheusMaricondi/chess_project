@@ -7,6 +7,7 @@ import { insufficientMaterial } from './rules'
 import { pieces } from '../../helpers/utils'
 import { renderMateInterface } from '../interface'
 import { modifiers } from '../../store/index'
+const { globalDeep } = modifiers.engine_settings_
 
 const renderNewMoves = () => {
     const { white_turn } = pieces()
@@ -23,9 +24,8 @@ const renderNewMoves = () => {
         moves_list.shift()
 
         return (moves != '') ? moves_list : (kingInXeque(position_pieces) ? (white_turn ? 99 : -99) : 0) //qual rei em xeque
-    }else {
-        return 0
     }
+    return 0
 }
 
 class Node{
@@ -36,9 +36,8 @@ class Node{
         this.command = command
     }
 
-    undo() {
-        const rootDeep = 7
-        const historicDeep = rootDeep+1 - modifiers.game_historic_.length
+    dinamicUndo() {
+        const historicDeep = globalDeep+1 - modifiers.game_historic_.length
         const undoQtd = this.deep - historicDeep
     
         for(let i=0;i<=undoQtd;i++) {
@@ -46,9 +45,8 @@ class Node{
         }
     }
     saveChild() {
-        this.undo()
+        this.dinamicUndo()
         makeMove([this.command])
-
         const moves = renderNewMoves()  
 
         if(moves.length > 0) {
@@ -63,20 +61,29 @@ class Node{
     evaluate() {
         this.saveChild()
         if(this.children) {
-
-            this.children.forEach((last, idx) => {
+            this.children.forEach((last) => {
                 makeMove([last.command])
-                const value = lineAnalise(position_pieces)
-                last.evaluation = value
+                const value = lineAnalise(position_pieces, globalDeep)
+                last.evaluation = 3
                 undoMove()
+                this.getMiniMaxValue(value)
             })
+            
         }
         undoMove()
     }
+    getMiniMaxValue(value) {
+        if(this.evaluation == null) {
+            this.evaluation = value
+        }else if(this.deep%2) { //mini
+            if(this.evaluation > value) this.evaluation = value
+        }else { //max
+            if(this.evaluation < value) this.evaluation = value
+        }
+    }
 }
 class Tree{
-    constructor(deep = null, root = []) {
-        this.deep = deep
+    constructor(root = []) {
         this.root = root
     }
     startEngine() {
@@ -84,7 +91,7 @@ class Tree{
 
         if(moves.length > 0) {
             moves.forEach(move => {
-                this.root.push(new Node(move, null, [], this.deep-1))
+                this.root.push(new Node(move, null, [], globalDeep-1))
             })
             this.minimax(this.root)
         }else {

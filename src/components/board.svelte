@@ -63,7 +63,6 @@
     let width_size = 65
     let pieces_pad = 5
     let height_size = width_size 
-
     const { same_pieces } = p()
 
     let colors = ['#CECECE', '#797979']
