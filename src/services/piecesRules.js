@@ -9,7 +9,7 @@ const findPossibleMoves = () => {
     const engineTree = new Tree()
     engineTree.startEngine()
     console.timeEnd('engine')
-    console.log(engineTree)
+    console.log('Tree: ',engineTree,' Deep ',modifiers.engine_settings_.globalDeep)
 }
 
 
@@ -121,8 +121,8 @@ const pawnMoves = (value, position, snapshot) => {
     const { static_pieces, target_pieces, dinamicRules: { pawnDirection, pawnStart, pawnPromotion, pawnEnPassant } } = pieces()
     const promotion = 1
     const en_passant = [3,4] // 3 - consume, 4 - create
-    const { pawn } = table_pieces().pieces
     let moves = ''
+    const { pawn } = table_pieces().target
 
     if(pawnDirection == 1) {
         for(let col_ = col+pawnDirection; col_ >= (col-pawnDirection); col_-=pawnDirection) {
@@ -174,6 +174,7 @@ const pawnMoves = (value, position, snapshot) => {
                 }
             }
         }
+       
     }
     if(row == pawnEnPassant) {
         let lastEnPassant 

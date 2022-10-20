@@ -158,12 +158,12 @@ const undoMove = () => {
                 position_pieces[target.charAt(0)][parseInt(target.charAt(1))+1] = ' '
             }
         }else if(modifiers == ';') {
-            position_pieces[command.charAt(1)][command.charAt(2)] = pawn
+            position_pieces[command.charAt(1)][command.charAt(2)] = t_pawn
             position_pieces[command.charAt(3)][command.charAt(4)] = ' '
-            position_pieces[command.charAt(1)][command.charAt(4)] = t_pawn
+            position_pieces[command.charAt(1)][command.charAt(4)] = pawn
         }else {
             let target = command.charAt(5)
-            position_pieces[command.charAt(1)][command.charAt(2)] = modifiers == ',' ? pawn : modifiers
+            position_pieces[command.charAt(1)][command.charAt(2)] = modifiers == ',' ? t_pawn : modifiers
             position_pieces[command.charAt(3)][command.charAt(4)] = target ? target : ' '
         }
     }

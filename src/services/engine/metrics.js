@@ -26,7 +26,7 @@ const piecesValue = (snapshot) => {
             }
         }
     }
-    return value.toFixed(2)
+    return parseInt(value.toFixed(2))
 }
 
 export default lineAnalise

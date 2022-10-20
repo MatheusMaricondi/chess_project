@@ -13,7 +13,7 @@ const renderNewMoves = () => {
     const { white_turn } = pieces()
     const gameDrow = insufficientMaterial(position_pieces)
     let moves = ''
-    
+ 
     if(!gameDrow) {
         position_pieces.forEach((row, row_i) => {
             row.forEach((col, col_i) => {
@@ -39,7 +39,6 @@ class Node{
     dinamicUndo() {
         const historicDeep = globalDeep+1 - modifiers.game_historic_.length
         const undoQtd = this.deep - historicDeep
-    
         for(let i=0;i<=undoQtd;i++) {
             undoMove()
         }
@@ -47,8 +46,7 @@ class Node{
     saveChild() {
         this.dinamicUndo()
         makeMove([this.command])
-        const moves = renderNewMoves()  
-
+        const moves = renderNewMoves()
         if(moves.length > 0) {
             moves.forEach(move => {
                 this.children.push(new Node(move, null, [], this.deep-1))
@@ -64,21 +62,21 @@ class Node{
             this.children.forEach((last) => {
                 makeMove([last.command])
                 const value = lineAnalise(position_pieces, globalDeep)
-                last.evaluation = 3
-                undoMove()
+                last.evaluation = value
                 this.getMiniMaxValue(value)
-            })
-            
+                undoMove()
+            }) 
         }
         undoMove()
     }
     getMiniMaxValue(value) {
+        const stage = globalDeep - this.deep
         if(this.evaluation == null) {
             this.evaluation = value
-        }else if(this.deep%2) { //mini
-            if(this.evaluation > value) this.evaluation = value
-        }else { //max
+        }else if(stage%2 != 0) { //mini
             if(this.evaluation < value) this.evaluation = value
+        }else { //max
+            if(this.evaluation > value) this.evaluation = value
         }
     }
 }
@@ -88,7 +86,6 @@ class Tree{
     }
     startEngine() {
         const moves = renderNewMoves()
-
         if(moves.length > 0) {
             moves.forEach(move => {
                 this.root.push(new Node(move, null, [], globalDeep-1))
