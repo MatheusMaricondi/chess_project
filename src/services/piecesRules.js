@@ -10,6 +10,8 @@ const findPossibleMoves = () => {
     engineTree.startEngine()
     console.timeEnd('engine')
     console.log('Tree: ',engineTree,' Deep ',modifiers.engine_settings_.globalDeep)
+    return engineTree.command
+
 }
 
 

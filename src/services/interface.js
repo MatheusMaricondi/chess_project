@@ -1,17 +1,12 @@
-import {  modifiers, update_store, promotion_modal_object, position_pieces, selected_piece_object } from '../store/index'
+import {  modifiers, update_store, promotion_modal_object, position_pieces } from '../store/index'
 import { renderBoard, renderPromotion, renderStatusGameBox, closeStatusGameBox } from '../components/board.svelte'
 
 const renderMateInterface = status => {
-    const { xeque_mate, game_settings, game_settings_: {white_turn, white_player} } = modifiers
     let text
-    update_store(xeque_mate, status)
-    // update_store(game_settings, {white_turn: !white_turn, white_player})
-
-    switch(status) {
-        case -99: text = 'You won'; break;
-        case 99: text = 'The machine won'; break;
-        case 0: text = 'The game is drow'; break;
-    }
+    update_store(modifiers.xeque_mate, status)
+    if(status>0) text = 'You won'
+    if(status<0) text = 'The machine won'
+    if(status==0) text = 'The game is drow'
     renderStatusGameBox(text)
 }
 
@@ -30,7 +25,7 @@ const renderBoardInterface = () => {
     renderBoard()
 }
 
-const restartGame = () => {
+const restartGame = (engineDeep) => {
     const { xeque_mate, game_historic } = modifiers
     const pieces = {
         0: ['R','N','B','Q','K','B','N','R'],
@@ -38,10 +33,10 @@ const restartGame = () => {
         6: 'p',
         7: ['r','n','b','q','k','b','n','r'],
     }
-    update_store(selected_piece_object.last_piece_moved, {ini: null, fin: null})
-    update_store(selected_piece_object.king_xeque, null)
+
     update_store(xeque_mate, null)
     update_store(game_historic, [])
+    update_store(modifiers.engine_settings, {globalDeep: engineDeep, tree: [], analise: false})
     
     for(let row=0;row<=7;row++)
         for(let col=0;col<=7;col++) {

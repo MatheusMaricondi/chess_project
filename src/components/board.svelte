@@ -1,10 +1,19 @@
 <script context="module">
-  import { position_pieces, promotion_modal_object, update_store } from '../store/index'
+  import { position_pieces, promotion_modal_object, update_store, modifiers } from '../store/index'
   import { pieces as p } from '../helpers/utils'
   import { selectSourcePiece, selectTargetPiece, selectPromotionPiece, undoMove } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
   import { standard } from '../services/getPieces';
 
+  let deepOptions = [
+		{ value: 1, text: `Very Easy` },
+		{ value: 3, text: `Easy` },
+		{ value: 5, text: `Medium` },
+		{ value: 7, text: `Hard` },
+		{ value: 9, text: `Professional` },
+	];
+
+  let engineDeep = deepOptions[0].value
 
   let chessboard = Array(8).fill().map(() => Array(8).fill())
   let select_square = '#89c88a'
@@ -17,6 +26,9 @@
       deletePromotionOptions()
     }
   })
+  function changeEngineDeep(value) {
+    engineDeep = value
+  }
 
   function renderStatusGameBox(text) {
     let mateBox = document.getElementById('mate')
@@ -121,7 +133,19 @@
   }
 </script>
 <main>
-  <div><button on:click={restartGame}>New Game</button></div>
+  <div id='newGame'>
+    <label style="color:white;padding-top:10px;padding-right:5px">Choose Engine Deep</label>
+    <select value={modifiers.engine_settings_.globalDeep} on:change="{(ev) => engineDeep = ev.target.value}">
+      {#each deepOptions as deep}
+        <option value={deep.value}>
+          {deep.text}
+        </option>
+      {/each}
+    </select>
+    <button on:click={restartGame(engineDeep)}>
+      New Game
+    </button>
+</div>
   <div>
     {#each chessboard as row, row_i}
     {#each row as col, col_i}

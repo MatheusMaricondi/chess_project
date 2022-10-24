@@ -74,7 +74,6 @@ const makeMove = command => {
     const { xeque_mate_ } = modifiers
     const { rook, king, pawn } = table_pieces().pieces
     const { dinamicRules: { kingCastle, kingTarget } } = pieces()
-    
     let piece 
     let source
     let target
@@ -202,17 +201,12 @@ const make_engine_moves = () => {
 
     if(isEngineTurn) {
         update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: true})
-
-
         const better_move = findPossibleMoves(isEngineTurn) // engine plays
         
         update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: false})
 
-        if(better_move) {
-
-            // update_store(modifiers.engine_settings, {...modifiers.engine_settings_, analise: false})
-            // makeMove([better_move])
-        }
+        if(better_move) 
+            makeMove([better_move])
     }
 }
 

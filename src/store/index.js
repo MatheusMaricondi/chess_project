@@ -2,13 +2,13 @@ import { writable } from 'svelte/store';
 
 let position_pieces = writable([
   [' ',' ',' ',' ',' ',' ',' ',' '],
+  [' ',' ',' ',' ','Q',' ',' ',' '],
   [' ',' ',' ',' ',' ',' ',' ',' '],
   [' ',' ','K',' ',' ',' ',' ',' '],
+  ['k',' ',' ',' ',' ',' ',' ',' '],
   [' ',' ',' ',' ',' ',' ',' ',' '],
-  [' ',' ',' ',' ',' ','k',' ',' '],
-  [' ',' ','p',' ',' ',' ',' ',' '],
-  [' ',' ',' ','p',' ',' ',' ',' '],
-  [' ','N',' ',' ',' ',' ',' ',' ']
+  [' ',' ',' ',' ',' ',' ',' ',' '],
+  [' ',' ',' ',' ',' ',' ',' ',' ']
 ])
 
 let promotion_modal_object = {
@@ -32,11 +32,11 @@ let promotion_modal_object = {
 let modifiers = {
   game_settings: writable({white_turn: true, white_player: true}), // white true
   game_settings_: writable({}),
-  engine_settings: writable({globalDeep: 5, tree: [], analise: false}), // tree: [{node: 0, command: null, evaluate: null, children: []}]
+  engine_settings: writable({globalDeep: 12, tree: [], analise: false}), // tree: [{node: 0, command: null, evaluate: null, children: []}]
   engine_settings_: writable({}),
   xeque_mate: writable(null), // 0: draw, 1: player win, 2: enigine win
   xeque_mate_: writable(null),
-  game_historic: writable([]), // sts: {move: null, castle: {castle_k: true, castle_q: true}, en_passant: null}
+  game_historic: writable([]), 
   game_historic_: writable([]),
 }
 
