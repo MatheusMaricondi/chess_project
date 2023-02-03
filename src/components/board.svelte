@@ -1,7 +1,7 @@
 <script context="module">
   import { position_pieces, promotion_modal_object, update_store, modifiers } from '../store/index'
   import { pieces as p } from '../helpers/utils'
-  import { selectSourcePiece, selectTargetPiece, selectPromotionPiece, undoMove } from '../services/logicMoves'
+  import { selectSourcePiece, selectTargetPiece, selectPromotionPiece } from '../services/logicMoves'
   import { restartGame } from '../services/interface'
   import { standard } from '../services/getPieces';
 
@@ -26,10 +26,25 @@
       deletePromotionOptions()
     }
   })
-  function changeEngineDeep(value) {
-    engineDeep = value
+
+  function dragstart_handler(ev) {
+    console.log('event',ev.target.id)
+    ev.dataTransfer.setData("text/plain", ev.target.id);
   }
 
+  function getDraggableElement(ev, id) {
+    const {row, col} = id
+    const idElement = `${row}${col}`
+    selectSourcePiece(id)
+  
+    // const element = document.getElementById(idElement)
+    // element.addEventListener("dragstart", dragstart_handler);
+  }
+
+  function getTargetElement(ev) {
+    console.log(ev)
+  }
+  
   function renderStatusGameBox(text) {
     let mateBox = document.getElementById('mate')
 
@@ -81,9 +96,16 @@
     chessboard.forEach((row, row_i) => {
       row.forEach((col, col_i) => {
         if(pieces[position_pieces[row_i][col_i]]) {
+          // const tagParagraph = document.createElement("p")
+          // tagParagraph.innerHTML = pieces[position_pieces[row_i][col_i]]
+          // chessboard[row_i][col_i].appendChild(tagParagraph)
           chessboard[row_i][col_i].innerHTML = pieces[position_pieces[row_i][col_i]]
           if(same_pieces.test(position_pieces[row_i][col_i])) { 
             chessboard[row_i][col_i].onclick = () => selectSourcePiece({row: row_i, col: col_i})
+            // chessboard[row_i][col_i].id = `${row_i}${col_i}`
+            // chessboard[row_i][col_i].onmousedown = ev => getDraggableElement(ev, {row: row_i, col: col_i})
+            // chessboard[row_i][col_i].onmouseup = ev => getTargetElement(ev)
+
           }else {
             chessboard[row_i][col_i].onclick = () => selectTargetPiece({row: row_i, col: col_i});
           }
@@ -133,31 +155,37 @@
   }
 </script>
 <main>
-  <div id='newGame'>
-    <label style="color:white;padding-top:10px;padding-right:5px">Choose Engine Deep</label>
-    <select value={modifiers.engine_settings_.globalDeep} on:change="{(ev) => engineDeep = ev.target.value}">
-      {#each deepOptions as deep}
-        <option value={deep.value}>
-          {deep.text}
-        </option>
-      {/each}
-    </select>
-    <button on:click={restartGame(engineDeep)}>
-      New Game
-    </button>
-</div>
-  <div>
-    {#each chessboard as row, row_i}
-    {#each row as col, col_i}
-    <div bind:this={chessboard[row_i][col_i]}></div>
-    {/each}
-    {/each}
+  <div style="display: flex;">
+    <div>
+      <div id="newGame">
+        <!-- <label style="color:white;padding-top:10px;padding-right:5px">Choose Engine Deep</label> -->
+        <select value={modifiers.engine_settings_.globalDeep} on:change="{(ev) => engineDeep = ev.target.value}">
+          {#each deepOptions as deep}
+            <option value={deep.value}>
+              {deep.text}
+            </option>
+          {/each}
+        </select>
+        <button style="margin-left: 10px;" on:click={restartGame(engineDeep)}>
+          New Game
+        </button>
+      </div>
+   
+      <div>
+        {#each chessboard as row, row_i}
+          {#each row as col, col_i}
+            <div bind:this={chessboard[row_i][col_i]}></div>
+          {/each}
+        {/each}
+      </div>
+      <div id='promotion'></div>
+      <div id='mate'></div>
+    
+      <div style="margin-top: 10px">
+        <textarea rows="2" cols="70"></textarea>
+      </div>
+    </div>
   </div>
-  <div id='promotion'></div>
-  <div id='mate'></div>
-
-  <button on:click={undoMove}>Undo</button>
-  <button>Next</button>
 </main>
 
 <style>
